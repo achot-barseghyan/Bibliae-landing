@@ -1,0 +1,365 @@
+---
+import { Picture } from 'astro:assets';
+import PhoneFrame from './PhoneFrame.astro';
+import liturgie from '../assets/screens/ecran-liturgie.png';
+import chapelet from '../assets/screens/ecran-chapelet.png';
+import frise from '../assets/screens/ecran-frise.png';
+import paroisse from '../assets/screens/ecran-paroisse.png';
+
+const steps = [
+  {
+    num: 'I',
+    title: 'La Bible, comme un livre',
+    text: "Toute l'Écriture mise en page avec le soin d'une belle édition imprimée. Surlignez, annotez, et reprenez votre lecture là où vous l'avez laissée.",
+  },
+  {
+    num: 'II',
+    title: 'La liturgie du jour',
+    text: "Les lectures de la messe et l'office des heures, selon le calendrier de l'Église, avec le saint et la couleur liturgique du jour.",
+  },
+  {
+    num: 'III',
+    title: 'Le chapelet guidé',
+    text: 'Les mystères du jour, grain après grain, avec une courte méditation pour chacun.',
+  },
+  {
+    num: 'IV',
+    title: 'Le Compendium',
+    text: "Les saints, la frise de l'histoire sainte et les bases de la foi, pour ceux qui découvrent l'Église comme pour ceux qui veulent approfondir.",
+  },
+  {
+    num: 'V',
+    title: 'Trouver une paroisse',
+    text: 'Cherchez par nom, ville ou code postal : chaque paroisse avec ses églises et ses horaires de messe.',
+  },
+];
+
+// Écran I : maquette HTML en attendant la capture réelle de l'écran de lecture.
+const shots = [
+  { src: liturgie, alt: 'Écran Jour liturgique de Bibliae : saint du jour, couleur liturgique et lectures de la messe' },
+  { src: chapelet, alt: 'Écran Chapelet de Bibliae : mystères du jour et méditation, grain après grain' },
+  { src: frise, alt: "Écran Compendium de Bibliae : frise chronologique de l'histoire sainte" },
+  { src: paroisse, alt: 'Écran Paroisses de Bibliae : recherche de paroisse et horaires des messes' },
+];
+---
+
+<section id="fonctions" class="features" aria-labelledby="features-title" data-features data-active="0">
+  <div class="container">
+    <p class="eyebrow" data-reveal>Dans l'application</p>
+    <h2 id="features-title" data-reveal data-delay="120">
+      Tout ce qui nourrit la foi, <em>au même endroit.</em>
+    </h2>
+
+    <div class="layout">
+      <div class="steps">
+        {
+          steps.map((s, i) => (
+            <article class:list={['step', { 'is-active': i === 0 }]} data-step={i}>
+              <div class="num">
+                <span>{s.num}</span>
+                <span class="rule" aria-hidden="true" />
+              </div>
+              <h3>{s.title}</h3>
+              <p>{s.text}</p>
+            </article>
+          ))
+        }
+      </div>
+
+      <div class="stage">
+        <div class="stage-inner">
+          <div class="glow" aria-hidden="true"></div>
+          <PhoneFrame tone="light">
+            <div
+              class="scr is-active reading"
+              data-screen="0"
+              role="img"
+              aria-label="Écran de lecture de Bibliae : Genèse 1 avec un verset souligné et une note personnelle"
+            >
+              <div class="reading-head">
+                <span class="chap">Genèse 1</span>
+                <span class="count">1 / 50</span>
+              </div>
+              <p class="first"><sup>1</sup> Au commencement, Dieu créa le ciel et la terre.</p>
+              <p>
+                <sup>2</sup> La terre était informe et vide, les ténèbres étaient au-dessus de l'abîme et le souffle de Dieu
+                planait au-dessus des eaux.
+              </p>
+              <p><span class="underline"><sup>3</sup> Dieu dit : « Que la lumière soit. » Et la lumière fut.</span></p>
+              <div class="mynote">
+                <div class="mynote-label">MA NOTE</div>
+                <div class="mynote-text">La première parole de Dieu est lumière.</div>
+              </div>
+            </div>
+            {
+              shots.map((s, i) => (
+                <div class="scr shot" data-screen={i + 1}>
+                  <Picture
+                    src={s.src}
+                    alt={s.alt}
+                    formats={['avif', 'webp']}
+                    widths={[280, Math.min(560, s.src.width)]}
+                    sizes="(max-width: 399px) 240px, 278px"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+              ))
+            }
+          </PhoneFrame>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  @property --glow {
+    syntax: '<color>';
+    inherits: true;
+    initial-value: rgba(181, 137, 46, 0.32);
+  }
+
+  .features {
+    background: var(--paper);
+    padding: 120px var(--gutter) 60px;
+    /* clip (et non hidden) : n'empêche pas le position: sticky du téléphone */
+    overflow-x: clip;
+    --glow: rgba(181, 137, 46, 0.32);
+    transition: --glow 0.8s;
+  }
+  .features[data-active='1'] {
+    --glow: rgba(168, 40, 46, 0.26);
+  }
+  .features[data-active='2'] {
+    --glow: rgba(107, 30, 35, 0.28);
+  }
+  .features[data-active='3'] {
+    --glow: rgba(181, 137, 46, 0.3);
+  }
+  .features[data-active='4'] {
+    --glow: rgba(107, 30, 35, 0.24);
+  }
+
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  h2 {
+    margin-top: 16px;
+    max-width: 760px;
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(40px, 5.6vw, 72px);
+    line-height: 1;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+  h2 em {
+    color: var(--oxblood);
+  }
+
+  .layout {
+    margin-top: 70px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 60px;
+    align-items: start;
+  }
+
+  .steps {
+    display: flex;
+    flex-direction: column;
+  }
+  .step {
+    min-height: 66vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 30px 0;
+    border-top: 0.5px solid rgba(35, 32, 26, 0.2);
+    transition: opacity 0.6s;
+  }
+  .num {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 22px;
+    color: var(--gold);
+  }
+  .rule {
+    height: 1px;
+    width: 24px;
+    background: var(--oxblood);
+    transition: width 0.8s var(--ease);
+  }
+  .step.is-active .rule {
+    width: 80px;
+  }
+  .step h3 {
+    margin-top: 16px;
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(32px, 3.6vw, 46px);
+    line-height: 1.02;
+    color: var(--ink);
+  }
+  .step p {
+    margin-top: 16px;
+    max-width: 440px;
+    font-size: 17px;
+    line-height: 1.65;
+    color: rgba(35, 32, 26, 0.78);
+    text-wrap: pretty;
+  }
+
+  /* Étapes inactives estompées seulement sur desktop, et seulement si le JS pilote l'état */
+  @media (min-width: 900px) {
+    :global(.js) .step {
+      opacity: 0.28;
+    }
+    :global(.js) .step.is-active {
+      opacity: 1;
+    }
+  }
+
+  .stage {
+    position: sticky;
+    top: 12vh;
+    display: flex;
+    justify-content: center;
+    padding: 20px 0;
+  }
+  .stage-inner {
+    position: relative;
+  }
+  .glow {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 520px;
+    height: 520px;
+    margin: -260px 0 0 -260px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--glow), transparent 65%);
+    pointer-events: none;
+  }
+  .stage-inner > :global(.phone) {
+    position: relative;
+  }
+
+  .scr {
+    position: absolute;
+    inset: 0;
+    background: var(--paper);
+    opacity: 0;
+    transform: translateY(30px) scale(0.97);
+    transition:
+      opacity 0.7s,
+      transform 0.7s var(--ease);
+  }
+  .scr.is-past {
+    transform: translateY(-30px) scale(0.97);
+  }
+  .scr.is-active {
+    opacity: 1;
+    transform: none;
+  }
+  .shot {
+    padding-top: 40px;
+  }
+  .shot :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+  }
+  .shot :global(picture) {
+    display: block;
+    height: 100%;
+  }
+
+  .reading {
+    padding: 58px 22px 0;
+    color: var(--ink-text);
+  }
+  .reading-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid rgba(107, 30, 35, 0.55);
+    padding-bottom: 10px;
+  }
+  .chap {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 22px;
+    color: var(--ink);
+  }
+  .count {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: rgba(35, 32, 26, 0.55);
+  }
+  .reading p {
+    margin-top: 9px;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .reading p.first {
+    margin-top: 18px;
+  }
+  .reading sup {
+    font-size: 8px;
+    color: var(--gold);
+  }
+  .underline {
+    border-bottom: 1.5px solid var(--oxblood);
+  }
+  .mynote {
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: var(--paper-dark);
+    box-shadow: inset 0 0 0 0.5px rgba(181, 137, 46, 0.6);
+  }
+  .mynote-label {
+    font-size: 8.5px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    color: var(--gold);
+  }
+  .mynote-text {
+    margin-top: 4px;
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--ink);
+  }
+
+  @media (max-width: 899px) {
+    .layout {
+      grid-template-columns: 1fr;
+    }
+    .stage {
+      position: relative;
+      top: auto;
+      order: -1;
+    }
+    .step {
+      min-height: auto;
+    }
+    .glow {
+      width: 420px;
+      height: 420px;
+      margin: -210px 0 0 -210px;
+    }
+  }
+</style>

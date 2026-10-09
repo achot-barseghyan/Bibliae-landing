@@ -1,0 +1,58 @@
+---
+import { Image } from 'astro:assets';
+import icon from '../assets/icone/icon-60.png';
+import { CONTACT_EMAIL } from '../config';
+---
+
+<footer class="footer">
+  <div class="inner container">
+    <div class="brand">
+      <Image src={icon} alt="" width={26} height={26} densities={[1, 2]} loading="lazy" />
+      <span>Bibliae</span>
+    </div>
+    <nav class="links" aria-label="Liens légaux">
+      <a href={`mailto:${CONTACT_EMAIL}`}>Contact</a>
+      <a href="/confidentialite">Confidentialité</a>
+      <a href="/mentions-legales">Mentions légales</a>
+      <span class="copy">© 2026 Bibliae</span>
+    </nav>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    background: var(--ink-dark);
+    padding: 40px var(--gutter);
+    border-top: 0.5px solid rgba(226, 190, 110, 0.25);
+  }
+  .inner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--serif);
+    font-size: 20px;
+    color: var(--paper-light);
+  }
+  .brand img {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+  }
+  .links {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    align-items: center;
+    font-size: 13px;
+  }
+  .copy {
+    color: rgba(247, 241, 227, 0.55);
+  }
+</style>

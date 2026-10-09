@@ -1,0 +1,384 @@
+---
+import PhoneFrame from './PhoneFrame.astro';
+import StoreButtons from './StoreButtons.astro';
+import ModeText from './ModeText.astro';
+import { RELEASE_LABEL } from '../config';
+
+const particles = Array.from({ length: 22 }, (_, i) => ({
+  x: (i * 37) % 100,
+  y: 40 + ((i * 53) % 60),
+  s: 1.5 + (i % 3),
+  d: 6000 + ((i * 733) % 5000),
+  delay: (i * 517) % 6000,
+}));
+---
+
+<section class="hero" aria-labelledby="hero-title" data-hero>
+  <div class="halo" data-par="0.25" aria-hidden="true"></div>
+  <div class="rings" data-par="0.15" aria-hidden="true">
+    <svg data-spin style="--spin:120s" width="760" height="760" viewBox="0 0 760 760" fill="none">
+      <circle cx="380" cy="380" r="376" stroke="#B5892E" stroke-width="0.6" opacity="0.35"></circle>
+      <circle cx="380" cy="380" r="362" stroke="#B5892E" stroke-width="0.6" opacity="0.3" stroke-dasharray="2 9"></circle>
+      <path d="M380 0v40M380 720v40M0 380h40M720 380h40M111 111l28 28M621 621l28 28M649 111l-28 28M139 621l-28 28" stroke="#B5892E" stroke-width="0.8" opacity="0.5"></path>
+    </svg>
+    <svg data-spin data-spin-reverse style="--spin:180s" width="760" height="760" viewBox="0 0 760 760" fill="none">
+      <circle cx="380" cy="380" r="290" stroke="#6B1E23" stroke-width="1" opacity="0.55" stroke-dasharray="1 14"></circle>
+      <circle cx="380" cy="380" r="240" stroke="#B5892E" stroke-width="0.5" opacity="0.25"></circle>
+    </svg>
+  </div>
+  <div class="particles" aria-hidden="true">
+    {
+      particles.map((p) => (
+        <span
+          style={`left:${p.x}%;top:${p.y}%;width:${p.s}px;height:${p.s}px;animation-duration:${p.d}ms;animation-delay:${p.delay}ms`}
+        />
+      ))
+    }
+  </div>
+
+  <div class="grid container">
+    <div class="copy">
+      <p class="badge" data-reveal data-delay="100">
+        <span class="dot" aria-hidden="true"></span>
+        <ModeText><Fragment slot="live">Application catholique</Fragment><Fragment slot="soon">Bientôt disponible · {RELEASE_LABEL}</Fragment></ModeText>
+      </p>
+      <h1 id="hero-title">
+        <span class="mask"><span class="line" style="--i:0">La Parole,</span></span>
+        <span class="mask"><span class="line accent" style="--i:1">la prière,</span></span>
+        <span class="mask"><span class="line" style="--i:2">l'Église.</span></span>
+      </h1>
+      <p class="lead" data-reveal data-delay="700">
+        Toute la Bible, la liturgie du jour, le chapelet et les bases de la foi, réunis dans une application catholique
+        pensée comme un beau livre.
+      </p>
+      <div class="stores-wrap" data-reveal data-delay="900">
+        <StoreButtons variant="hero" />
+      </div>
+      <p class="note" data-reveal data-delay="1100">
+        <ModeText><Fragment slot="live">Gratuit · Fonctionne hors ligne</Fragment><Fragment slot="soon">Sortie prévue {RELEASE_LABEL} · Gratuit</Fragment></ModeText>
+      </p>
+    </div>
+
+    <div class="device">
+      <div data-reveal data-delay="350">
+        <div data-float>
+          <div class="tilt" data-tilt>
+            <!-- À remplacer par une capture réelle de l'écran d'annotation -->
+            <PhoneFrame tone="hero">
+              <div
+                class="reader"
+                role="img"
+                aria-label="Écran de lecture de Bibliae : prologue de l'Évangile selon saint Jean, avec un verset surligné et la barre d'annotation"
+              >
+                <div class="reader-head">
+                  <span class="chap">Jean 1</span>
+                  <span class="tag">PROLOGUE</span>
+                </div>
+                <div class="dropcap">A</div>
+                <p>u commencement était le Verbe, et le Verbe était auprès de Dieu, et le Verbe était Dieu.</p>
+                <p><sup>2</sup> Il était au commencement auprès de Dieu.</p>
+                <p><sup>3</sup> C'est par lui que tout est venu à l'existence.</p>
+                <p class="hl"><sup>4</sup> En lui était la vie, et la vie était la lumière des hommes.</p>
+                <p><sup>5</sup> La lumière brille dans les ténèbres, et les ténèbres ne l'ont pas arrêtée.</p>
+                <div class="toolbar">
+                  <span class="sw gold"></span>
+                  <span class="sw red"></span>
+                  <span>Surligner</span>
+                  <span>Note</span>
+                  <span>Partager</span>
+                </div>
+              </div>
+            </PhoneFrame>
+            <div class="glare" data-glare aria-hidden="true"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scroll-hint" data-reveal data-delay="1400" aria-hidden="true">
+    <span></span>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100svh;
+    padding: 130px var(--gutter) 80px;
+    display: flex;
+    align-items: center;
+    background: var(--ink-dark);
+    overflow: hidden;
+  }
+
+  .halo {
+    position: absolute;
+    left: 58%;
+    top: 50%;
+    width: 900px;
+    height: 900px;
+    margin: -450px 0 0 -450px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(181, 137, 46, 0.22), rgba(107, 30, 35, 0.12) 40%, transparent 68%);
+    pointer-events: none;
+  }
+  .rings {
+    position: absolute;
+    left: 58%;
+    top: 50%;
+    width: 760px;
+    height: 760px;
+    margin: -380px 0 0 -380px;
+    pointer-events: none;
+  }
+  .rings svg {
+    position: absolute;
+    inset: 0;
+    max-width: none;
+  }
+
+  .particles span {
+    position: absolute;
+    border-radius: 50%;
+    background: var(--gold-light);
+    opacity: 0;
+    pointer-events: none;
+    box-shadow: 0 0 8px rgba(226, 190, 110, 0.8);
+    animation: rise 6s ease-out infinite;
+  }
+  @keyframes rise {
+    0% {
+      transform: translateY(0);
+      opacity: 0;
+    }
+    30% {
+      opacity: 0.9;
+    }
+    100% {
+      transform: translateY(-160px);
+      opacity: 0;
+    }
+  }
+
+  .grid {
+    position: relative;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+    gap: 56px;
+    align-items: center;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 32px;
+    padding: 0 14px;
+    border-radius: 16px;
+    box-shadow: inset 0 0 0 0.5px rgba(226, 190, 110, 0.5);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+  }
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--gold-light);
+  }
+
+  h1 {
+    margin-top: 26px;
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(54px, 8.4vw, 112px);
+    line-height: 0.95;
+    letter-spacing: -0.015em;
+    color: var(--paper-light);
+  }
+  .mask {
+    display: block;
+    overflow: hidden;
+    padding-bottom: 0.08em;
+  }
+  .line {
+    display: block;
+    animation: line-in 1.3s var(--ease) calc(200ms + var(--i) * 160ms) both;
+  }
+  .accent {
+    font-style: italic;
+    color: var(--gold-light);
+  }
+  @keyframes line-in {
+    from {
+      transform: translateY(110%) rotate(3deg);
+      opacity: 0;
+    }
+  }
+
+  .lead {
+    margin-top: 28px;
+    max-width: 470px;
+    font-size: 18px;
+    line-height: 1.65;
+    color: var(--cream-70);
+    text-wrap: pretty;
+  }
+  .stores-wrap {
+    margin-top: 36px;
+  }
+  .note {
+    margin-top: 22px;
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 15px;
+    color: rgba(247, 241, 227, 0.55);
+  }
+
+  .device {
+    display: flex;
+    justify-content: center;
+    perspective: 1400px;
+  }
+  .tilt {
+    position: relative;
+    transition: transform 0.25s ease-out;
+    transform-style: preserve-3d;
+  }
+  .glare {
+    position: absolute;
+    inset: 0;
+    border-radius: 50px;
+    pointer-events: none;
+    background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.16), transparent 45%);
+    mix-blend-mode: screen;
+  }
+
+  .reader {
+    padding: 58px 22px 0;
+    height: 100%;
+    color: var(--ink-text);
+  }
+  .reader-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid rgba(107, 30, 35, 0.55);
+    padding-bottom: 10px;
+  }
+  .chap {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 22px;
+    color: var(--ink);
+  }
+  .tag {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    color: var(--gold);
+  }
+  .dropcap {
+    margin-top: 20px;
+    margin-right: 6px;
+    float: left;
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 44px;
+    line-height: 0.8;
+    color: var(--oxblood);
+  }
+  .reader p {
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .reader-head + .dropcap + p {
+    margin-top: 20px;
+  }
+  .reader p + p {
+    margin-top: 10px;
+  }
+  .reader sup {
+    font-size: 8px;
+    color: var(--gold);
+  }
+  .reader .hl {
+    background: rgba(226, 190, 110, 0.38);
+    box-shadow:
+      -3px 0 0 rgba(226, 190, 110, 0.38),
+      3px 0 0 rgba(226, 190, 110, 0.38);
+  }
+  .reader .hl sup {
+    color: var(--oxblood);
+  }
+  .toolbar {
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 16px;
+    min-height: 50px;
+    border-radius: 25px;
+    background: rgba(35, 32, 26, 0.92);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--paper-light);
+  }
+  .sw {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+  }
+  .sw.gold {
+    background: var(--gold-light);
+  }
+  .sw.red {
+    background: var(--oxblood);
+    box-shadow: 0 0 0 1.5px var(--paper);
+  }
+
+  .scroll-hint {
+    position: absolute;
+    left: 50%;
+    bottom: 28px;
+    margin-left: -11px;
+    width: 22px;
+    height: 36px;
+    border-radius: 11px;
+    box-shadow: inset 0 0 0 1px rgba(247, 241, 227, 0.4);
+    display: flex;
+    justify-content: center;
+    padding-top: 7px;
+  }
+  .scroll-hint span {
+    width: 2px;
+    height: 7px;
+    border-radius: 1px;
+    background: var(--gold-light);
+    animation: hint 1.6s ease-in infinite;
+  }
+  @keyframes hint {
+    to {
+      transform: translateY(12px);
+      opacity: 0;
+    }
+  }
+
+  @media (max-width: 899px) {
+    .scroll-hint {
+      display: none;
+    }
+  }
+  @media (max-width: 399px) {
+    .glare {
+      border-radius: 44px;
+    }
+  }
+</style>

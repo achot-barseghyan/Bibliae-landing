@@ -1,0 +1,68 @@
+---
+const words = [
+  'Évangile du jour',
+  'Laudes et Vêpres',
+  'Chapelet',
+  'Vies des saints',
+  'Annotations',
+  'Hors ligne',
+  'Calendrier liturgique',
+  'Parcours de lecture',
+];
+---
+
+<div class="marquee">
+  <div class="track" data-marquee>
+    {
+      [0, 1].map((copy) => (
+        <ul aria-hidden={copy === 1 ? 'true' : undefined} aria-label={copy === 0 ? "Dans l'application" : undefined}>
+          {words.map((w) => (
+            <li>
+              <span>{w}</span>
+              <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+                <path d="M7 0l1.6 5.4L14 7l-5.4 1.6L7 14l-1.6-5.4L0 7l5.4-1.6z" fill="#E2BE6E" />
+              </svg>
+            </li>
+          ))}
+        </ul>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .marquee {
+    background: var(--oxblood);
+    padding: 22px 0;
+    overflow: hidden;
+    border-top: 0.5px solid rgba(226, 190, 110, 0.4);
+    border-bottom: 0.5px solid rgba(226, 190, 110, 0.4);
+  }
+  .track {
+    display: flex;
+    width: max-content;
+    animation: marquee 48s linear infinite;
+  }
+  ul,
+  li {
+    display: flex;
+    align-items: center;
+  }
+  li {
+    gap: 34px;
+    padding-right: 34px;
+  }
+  li span {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 34px;
+    color: var(--paper-light);
+    white-space: nowrap;
+  }
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+</style>

@@ -1,0 +1,118 @@
+---
+import { Image } from 'astro:assets';
+import icon from '../assets/icone/icon-180.png';
+import ModeText from './ModeText.astro';
+import { RELEASE_LABEL } from '../config';
+
+const release = RELEASE_LABEL.charAt(0).toUpperCase() + RELEASE_LABEL.slice(1);
+---
+
+<div class="progress" data-progress aria-hidden="true"></div>
+
+<header class="nav" data-nav>
+  <nav class="inner container" aria-label="Navigation principale">
+    <a class="brand" href="/" aria-label="Bibliae, accueil">
+      <Image src={icon} alt="" width={34} height={34} densities={[1, 2]} loading="eager" />
+      <span>Bibliae</span>
+    </a>
+    <div class="links">
+      <a class="link" href="/#fonctions">Fonctionnalités</a>
+      <a class="cta" href="/#telecharger"><ModeText><Fragment slot="live">Télécharger</Fragment><Fragment slot="soon">{release}</Fragment></ModeText></a>
+    </div>
+  </nav>
+</header>
+
+<style>
+  .progress {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 2px;
+    width: 100%;
+    background: var(--gold-light);
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    z-index: 60;
+    pointer-events: none;
+  }
+
+  .nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    z-index: 50;
+    padding: 22px 0;
+    background: rgba(21, 18, 14, 0);
+    border-bottom: 0.5px solid transparent;
+    transition: all 0.5s var(--ease);
+  }
+  .nav.scrolled {
+    padding: 12px 0;
+    background: rgba(21, 18, 14, 0.82);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border-bottom-color: rgba(226, 190, 110, 0.25);
+  }
+
+  .inner {
+    padding: 0 var(--gutter);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 25px;
+    color: var(--paper-light);
+    letter-spacing: 0.01em;
+  }
+  .brand img {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  }
+
+  .links {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+  }
+  .link {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(247, 241, 227, 0.78);
+  }
+  .link:hover {
+    color: var(--paper-light);
+  }
+  .cta {
+    min-height: 40px;
+    padding: 0 18px;
+    border-radius: 20px;
+    background: var(--gold-light);
+    color: var(--ink-dark);
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    transition: background 0.3s;
+  }
+  .cta:hover {
+    background: var(--paper-light);
+    color: var(--ink-dark);
+  }
+
+  @media (max-width: 899px) {
+    .link {
+      display: none;
+    }
+  }
+</style>

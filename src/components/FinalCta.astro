@@ -1,0 +1,103 @@
+---
+import { Image } from 'astro:assets';
+import StoreButtons from './StoreButtons.astro';
+import icon from '../assets/icone/icon-180.png';
+import ModeText from './ModeText.astro';
+import { RELEASE_LABEL } from '../config';
+---
+
+<section id="telecharger" class="final" aria-labelledby="cta-title">
+  <svg class="ring" data-spin style="--spin:90s" width="1100" height="1100" viewBox="0 0 1100 1100" fill="none" aria-hidden="true">
+    <circle cx="550" cy="550" r="546" stroke="#E2BE6E" stroke-width="0.6" stroke-dasharray="2 12"></circle>
+    <circle cx="550" cy="550" r="420" stroke="#E2BE6E" stroke-width="0.5" opacity="0.6"></circle>
+    <path d="M550 0v80M550 1020v80M0 550h80M1020 550h80" stroke="#E2BE6E" stroke-width="0.8"></path>
+  </svg>
+
+  <div class="inner">
+    <div class="icon" data-reveal>
+      <div class="halo" data-pulse aria-hidden="true"></div>
+      <Image src={icon} alt="Bibliae" width={120} height={120} densities={[1, 1.5]} loading="lazy" data-float style="--float:5.1s" />
+    </div>
+    <h2 id="cta-title" data-reveal data-delay="150">
+      <ModeText>
+        <Fragment slot="live">Ouvrez la Parole, <em>chaque jour.</em></Fragment>
+        <Fragment slot="soon">Bibliae arrive <em>{RELEASE_LABEL}.</em></Fragment>
+      </ModeText>
+    </h2>
+    <p class="text" data-reveal data-delay="280">
+      <ModeText>
+        <Fragment slot="live">Bibliae est gratuite sur iPhone, iPad et Android.</Fragment>
+        <Fragment slot="soon">Nous terminons l'application. Elle sera gratuite sur iPhone, iPad et Android.</Fragment>
+      </ModeText>
+    </p>
+    <div class="stores-wrap" data-reveal data-delay="420">
+      <StoreButtons variant="cta" />
+    </div>
+  </div>
+</section>
+
+<style>
+  .final {
+    position: relative;
+    background: var(--oxblood);
+    padding: 130px var(--gutter) 120px;
+    overflow: hidden;
+  }
+  .ring {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin: -550px 0 0 -550px;
+    max-width: none;
+    pointer-events: none;
+    opacity: 0.5;
+  }
+  .inner {
+    position: relative;
+    max-width: 760px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .icon {
+    position: relative;
+  }
+  .halo {
+    position: absolute;
+    inset: -26px;
+    border-radius: 50px;
+    background: radial-gradient(circle, rgba(226, 190, 110, 0.5), transparent 70%);
+  }
+  .icon img {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    border-radius: 27px;
+    box-shadow: 0 24px 50px rgba(0, 0, 0, 0.45);
+  }
+  h2 {
+    margin-top: 40px;
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(46px, 6.4vw, 84px);
+    line-height: 0.98;
+    color: var(--paper-light);
+    text-wrap: balance;
+  }
+  h2 em {
+    color: var(--gold-light);
+  }
+  .text {
+    margin-top: 22px;
+    max-width: 460px;
+    font-size: 17px;
+    line-height: 1.6;
+    color: rgba(247, 241, 227, 0.8);
+  }
+  .stores-wrap {
+    margin-top: 38px;
+    width: 100%;
+  }
+</style>

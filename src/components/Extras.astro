@@ -1,0 +1,65 @@
+---
+const extras = [
+  { mark: 'i', title: 'Hors ligne', text: "Les textes restent disponibles sans connexion, à l'église comme en voyage." },
+  { mark: 'ii', title: 'Vos annotations', text: 'Surlignages et notes, retrouvés à tout moment et classés par livre.' },
+  { mark: 'iii', title: 'Parcours de lecture', text: 'Lire la Bible en un an, ou un évangile en un mois, à votre rythme.' },
+  { mark: 'iv', title: 'Calendrier liturgique', text: "Les temps, les fêtes et les couleurs de l'année de l'Église." },
+];
+---
+
+<section class="extras" aria-labelledby="extras-title">
+  <h2 id="extras-title" class="sr-only">Et aussi</h2>
+  <ul class="grid container">
+    {
+      extras.map((x, i) => (
+        <li class="cell" data-reveal data-delay={i * 120}>
+          <span class="mark" aria-hidden="true">{x.mark}</span>
+          <h3>{x.title}</h3>
+          <p>{x.text}</p>
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<style>
+  .extras {
+    background: var(--paper);
+    padding: 40px var(--gutter) 130px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+    gap: 1px;
+    background: rgba(35, 32, 26, 0.18);
+    box-shadow: 0 0 0 1px rgba(35, 32, 26, 0.18);
+  }
+  .cell {
+    background: var(--paper);
+    padding: 34px 28px;
+    transition: background 0.4s;
+  }
+  .cell:hover {
+    background: var(--paper-light);
+  }
+  .mark {
+    display: block;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 30px;
+    color: var(--gold);
+  }
+  h3 {
+    margin-top: 14px;
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 25px;
+    color: var(--ink);
+  }
+  p {
+    margin-top: 8px;
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: rgba(35, 32, 26, 0.74);
+  }
+</style>

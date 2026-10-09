@@ -1,0 +1,6 @@
+---
+// Affiche le slot « soon » avant la sortie, « live » ensuite (voir PRELAUNCH dans config.ts).
+import { PRELAUNCH } from '../config';
+---
+
+{PRELAUNCH ? <slot name="soon" /> : <slot name="live" />}

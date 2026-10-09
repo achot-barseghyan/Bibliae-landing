@@ -1,0 +1,500 @@
+---
+import type { MarkdownInstance } from 'astro';
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import icon from '../assets/icone/icon-60.png';
+import { SITE_URL } from '../config';
+
+export interface LegalFrontmatter {
+  title: string;
+  eyebrow: string;
+  description: string;
+  updated: string;
+  updatedISO: string;
+  intro: string;
+  /** Bloc « En bref » : présent dans la politique de confidentialité seulement. */
+  glance?: { icon: 'check' | 'info'; title: string; text: string }[];
+}
+
+interface Props {
+  lang: 'fr' | 'en';
+  page: 'privacy' | 'legal';
+  doc: MarkdownInstance<Record<string, any>>;
+}
+
+const { lang, page, doc } = Astro.props;
+const fm = doc.frontmatter as LegalFrontmatter;
+
+// Chaque « ## 1. Titre » du Markdown devient une <section> avec le numéro à part ;
+// les tableaux sont enveloppés dans un conteneur à défilement horizontal.
+const slugify = (s: string) =>
+  s
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+
+const toc: { slug: string; text: string }[] = [];
+const html = (await doc.compiledContent())
+  .replace(/<table>/g, '<div class="pp-table"><table>')
+  .replace(/<\/table>/g, '</table></div>')
+  .split(/(?=<h2[\s>])/)
+  .map((part) => {
+    const m = part.match(/^<h2[^>]*>([\s\S]*?)<\/h2>/);
+    if (!m) return part;
+    const inner = m[1].trim();
+    const [, num = '', title = inner] = inner.match(/^(\d+)\.\s*([\s\S]+)$/) ?? [];
+    const text = title.replace(/<[^>]+>/g, '');
+    const slug = slugify(text);
+    toc.push({ slug, text });
+    const head = `<div class="pp-head">${num ? `<span class="pp-num" aria-hidden="true">${num}</span>` : ''}<h2 id="${slug}">${title}</h2></div>`;
+    return `<section class="pp-section">${head}${part.slice(m[0].length)}</section>`;
+  })
+  .join('');
+
+const ALL_PATHS = {
+  privacy: { fr: '/confidentialite', en: '/en/privacy' },
+  legal: { fr: '/mentions-legales', en: '/en/legal-notice' },
+};
+const PATHS = ALL_PATHS[page];
+const t = {
+  fr: { updated: 'Dernière mise à jour :', glance: 'En bref', toc: 'Sommaire', back: 'Retour au site', home: 'Bibliae, accueil', langs: 'Langue', privacy: 'Confidentialité', legal: 'Mentions légales' },
+  en: { updated: 'Last updated:', glance: 'At a glance', toc: 'Contents', back: 'Back to website', home: 'Bibliae, home', langs: 'Language', privacy: 'Privacy', legal: 'Legal notice' },
+}[lang];
+
+const alternates = [
+  { hreflang: 'fr', href: new URL(PATHS.fr, SITE_URL).href },
+  { hreflang: 'en', href: new URL(PATHS.en, SITE_URL).href },
+  { hreflang: 'x-default', href: new URL(PATHS.fr, SITE_URL).href },
+];
+---
+
+<Base
+  lang={lang}
+  title={`${fm.title} — Bibliae`}
+  description={fm.description}
+  ogTitle={`${fm.title} — Bibliae`}
+  ogDescription={fm.description}
+  alternates={alternates}
+>
+  <header class="top">
+    <div class="wrap top-inner">
+      <a class="brand" href="/" aria-label={t.home}>
+        <Image src={icon} alt="" width={30} height={30} densities={[1, 2]} loading="eager" />
+        <span>Bibliae</span>
+      </a>
+      <nav class="langs" aria-label={t.langs}>
+        <a href={PATHS.fr} hreflang="fr" lang="fr" aria-current={lang === 'fr' ? 'page' : undefined}>FR</a>
+        <a href={PATHS.en} hreflang="en" lang="en" aria-current={lang === 'en' ? 'page' : undefined}>EN</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="contenu">
+    <div class="banner">
+      <div class="wrap">
+        <p class="eyebrow">{fm.eyebrow}</p>
+        <h1>{fm.title}</h1>
+        <p class="intro">{fm.intro}</p>
+        <p class="date">{t.updated} <time datetime={fm.updatedISO}>{fm.updated}</time></p>
+      </div>
+    </div>
+
+    <div class="wrap">
+      {
+        fm.glance?.length ? (
+          <section class="glance" aria-label={t.glance}>
+            {fm.glance.map((g) => (
+              <div class="card">
+                <span class:list={['badge', g.icon]} aria-hidden="true">{g.icon === 'check' ? '✓' : 'i'}</span>
+                <h2>{g.title}</h2>
+                <p>{g.text}</p>
+              </div>
+            ))}
+          </section>
+        ) : null
+      }
+
+      <div class="body">
+        <nav class="toc" aria-labelledby="toc-label">
+          <p id="toc-label" class="toc-label">{t.toc}</p>
+          <ol>
+            {toc.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}
+          </ol>
+        </nav>
+        <article class="text" set:html={html} />
+      </div>
+    </div>
+  </main>
+
+  <footer class="bottom">
+    <div class="wrap bottom-inner">
+      <span>© 2026 Bibliae</span>
+      <nav class="bottom-links">
+        <a href={ALL_PATHS.privacy[lang]} aria-current={page === 'privacy' ? 'page' : undefined}>{t.privacy}</a>
+        <a href={ALL_PATHS.legal[lang]} aria-current={page === 'legal' ? 'page' : undefined}>{t.legal}</a>
+        <a href="/">{t.back}</a>
+      </nav>
+    </div>
+  </footer>
+</Base>
+
+<style>
+  .wrap {
+    max-width: 1120px;
+    margin: 0 auto;
+  }
+
+  /* ---------- Header ---------- */
+  .top {
+    background: var(--ink-dark);
+    border-bottom: 0.5px solid rgba(226, 190, 110, 0.25);
+    padding: 16px 24px;
+  }
+  .top-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 23px;
+    color: var(--paper-light);
+  }
+  .brand:hover {
+    color: var(--paper-light);
+  }
+  .brand img {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+  }
+  .langs {
+    display: flex;
+    padding: 3px;
+    border-radius: 18px;
+    box-shadow: inset 0 0 0 0.5px rgba(226, 190, 110, 0.5);
+  }
+  .langs a {
+    height: 30px;
+    padding: 0 14px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: rgba(247, 241, 227, 0.75);
+    transition:
+      background 250ms,
+      color 250ms;
+  }
+  .langs a:hover {
+    color: var(--paper-light);
+  }
+  .langs a[aria-current='page'] {
+    background: var(--gold-light);
+    color: var(--ink-dark);
+  }
+
+  /* ---------- Bandeau titre ---------- */
+  main {
+    background: var(--paper);
+    color: var(--ink-text);
+  }
+  .banner {
+    background: var(--ink-dark);
+    padding: 56px 24px 64px;
+  }
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+  }
+  h1 {
+    margin-top: 18px;
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(42px, 6vw, 72px);
+    line-height: 1;
+    color: var(--paper-light);
+    text-wrap: balance;
+  }
+  .intro {
+    margin-top: 22px;
+    max-width: 620px;
+    font-size: 16.5px;
+    line-height: 1.65;
+    color: rgba(247, 241, 227, 0.78);
+    text-wrap: pretty;
+  }
+  .date {
+    margin-top: 18px;
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 15px;
+    color: rgba(247, 241, 227, 0.6);
+  }
+
+  /* ---------- En bref ---------- */
+  .glance {
+    position: relative;
+    margin: -28px 24px 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+    gap: 1px;
+    background: rgba(35, 32, 26, 0.18);
+    border: 1px solid rgba(35, 32, 26, 0.18);
+    box-shadow: 0 18px 40px -20px rgba(35, 32, 26, 0.35);
+  }
+  .card {
+    background: var(--paper-light);
+    padding: 22px 22px 20px;
+  }
+  .badge {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+  }
+  .badge.check {
+    background: #5e7a4e;
+  }
+  .badge.info {
+    background: var(--gold);
+    font-family: var(--serif);
+    font-size: 14px;
+    font-style: italic;
+  }
+  .card h2 {
+    margin-top: 12px;
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 21px;
+    line-height: 1.2;
+    color: var(--ink);
+  }
+  .card p {
+    margin-top: 6px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: rgba(35, 32, 26, 0.78);
+  }
+
+  /* ---------- Corps ---------- */
+  .body {
+    padding: 56px 24px 90px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 48px;
+    align-items: flex-start;
+  }
+  .toc {
+    flex: 0 0 220px;
+    position: sticky;
+    top: 24px;
+  }
+  .toc-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .toc ol {
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+    border-left: 0.5px solid rgba(35, 32, 26, 0.25);
+    counter-reset: toc;
+  }
+  .toc li {
+    counter-increment: toc;
+  }
+  .toc a {
+    display: block;
+    padding: 6px 0 6px 14px;
+    font-size: 13.5px;
+    line-height: 1.35;
+    color: rgba(35, 32, 26, 0.78);
+  }
+  .toc a::before {
+    content: counter(toc) '. ';
+  }
+  .toc a:hover {
+    color: var(--oxblood);
+  }
+  .text {
+    flex: 1 1 480px;
+    max-width: 720px;
+    min-width: 0;
+  }
+
+  @media (max-width: 770px) {
+    .toc {
+      flex-basis: 100%;
+      position: static;
+    }
+  }
+
+  /* ---------- Contenu Markdown ---------- */
+  .text :global(.pp-section) {
+    padding-bottom: 38px;
+    margin-bottom: 38px;
+    border-bottom: 0.5px solid rgba(35, 32, 26, 0.18);
+  }
+  .text :global(.pp-section:last-child) {
+    margin-bottom: 0;
+    border-bottom: 0;
+  }
+  .text :global(.pp-head) {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .text :global(.pp-num) {
+    font-variant-numeric: lining-nums;
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 22px;
+    color: var(--gold);
+  }
+  .text :global(h2) {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(28px, 3.4vw, 36px);
+    line-height: 1.1;
+    color: var(--ink);
+    scroll-margin-top: 24px;
+  }
+  .text :global(h3) {
+    margin-top: 22px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--oxblood);
+  }
+  .text :global(p) {
+    margin-top: 14px;
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--ink-text);
+    text-wrap: pretty;
+  }
+  .text :global(strong) {
+    font-weight: 600;
+  }
+  .text :global(ul) {
+    margin-top: 14px;
+    display: grid;
+    gap: 8px;
+  }
+  .text :global(li) {
+    position: relative;
+    padding-left: 14px;
+    font-size: 16px;
+    line-height: 1.7;
+    text-wrap: pretty;
+  }
+  .text :global(li)::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.72em;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--gold);
+  }
+  .text :global(a) {
+    color: var(--oxblood);
+    text-decoration: underline;
+    text-decoration-thickness: 0.5px;
+    text-underline-offset: 3px;
+  }
+  .text :global(a:hover) {
+    color: var(--gold);
+  }
+  .text :global(mark) {
+    background: rgba(226, 190, 110, 0.45);
+    color: inherit;
+    padding: 0 3px;
+  }
+
+  .text :global(.pp-table) {
+    margin-top: 20px;
+    overflow-x: auto;
+    border: 0.5px solid rgba(35, 32, 26, 0.3);
+  }
+  .text :global(table) {
+    width: 100%;
+    min-width: 560px;
+    border-collapse: collapse;
+    text-align: left;
+  }
+  .text :global(th) {
+    background: var(--paper-dark);
+    padding: 10px 12px;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .text :global(th:nth-child(1)) {
+    width: 25%;
+  }
+  .text :global(th:nth-child(2)) {
+    width: 32%;
+  }
+  .text :global(th:nth-child(3)) {
+    width: 23%;
+  }
+  .text :global(td) {
+    background: var(--paper-light);
+    padding: 10px 12px;
+    vertical-align: top;
+    border-top: 0.5px solid rgba(35, 32, 26, 0.3);
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+  .text :global(td:first-child) {
+    font-weight: 600;
+  }
+
+  /* ---------- Footer ---------- */
+  .bottom {
+    background: var(--ink-dark);
+    padding: 28px 24px;
+  }
+  .bottom-inner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: space-between;
+    font-size: 13px;
+    color: rgba(247, 241, 227, 0.7);
+  }
+  .bottom-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  .bottom-links a[aria-current='page'] {
+    color: var(--gold-light);
+  }
+</style>

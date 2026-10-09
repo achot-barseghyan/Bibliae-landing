@@ -1,0 +1,112 @@
+---
+import '../styles/global.css';
+import cormorant400 from '@fontsource/cormorant-garamond/files/cormorant-garamond-latin-400-normal.woff2?url';
+import inter400 from '@fontsource/inter/files/inter-latin-400-normal.woff2?url';
+import { PRELAUNCH, APP_STORE_ID, SITE_URL } from '../config';
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  /** Ajoute les données structurées de l'application (page d'accueil seulement). */
+  appSchema?: boolean;
+  noindex?: boolean;
+  lang?: 'fr' | 'en';
+  /** Versions dans d'autres langues (balises hreflang). */
+  alternates?: { hreflang: string; href: string }[];
+}
+
+const {
+  title = "Bibliae — La Bible, la liturgie du jour et le chapelet | App catholique",
+  description = "Toute la Bible, la liturgie du jour, le chapelet et les bases de la foi, réunis dans une application catholique pensée comme un beau livre. Gratuite sur iPhone et Android.",
+  ogTitle = "Bibliae — La Parole, la prière, l'Église",
+  ogDescription = "La Bible, la liturgie du jour, le chapelet et le Compendium dans une seule application.",
+  appSchema = false,
+  noindex = false,
+  lang = 'fr',
+  alternates = [],
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname.replace(/(.)\/$/, '$1'), SITE_URL).href;
+
+const jsonLd = appSchema
+  ? [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'MobileApplication',
+        name: 'Bibliae',
+        operatingSystem: 'iOS, Android',
+        applicationCategory: 'LifestyleApplication',
+        inLanguage: 'fr',
+        description: 'Bible, liturgie du jour, chapelet et Compendium de la foi catholique.',
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+        image: `${SITE_URL}/icon-512.png`,
+        screenshot: `${SITE_URL}/og-image.jpg`,
+        url: `${SITE_URL}/`,
+        author: { '@type': 'Person', name: 'Adrien Barseghyan' },
+      },
+      {
+        // Nom du site affiché par Google dans les résultats
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        name: 'Bibliae',
+        url: `${SITE_URL}/`,
+        inLanguage: 'fr',
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Organization',
+        name: 'Bibliae',
+        url: `${SITE_URL}/`,
+        logo: `${SITE_URL}/icon-512.png`,
+      },
+    ]
+  : null;
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="theme-color" content="#15120E" />
+    {noindex && <meta name="robots" content="noindex" />}
+    {alternates.map((a) => <link rel="alternate" hreflang={a.hreflang} href={a.href} />)}
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content={lang === 'en' ? 'en_US' : 'fr_FR'} />
+    {alternates.length > 0 && <meta property="og:locale:alternate" content={lang === 'en' ? 'fr_FR' : 'en_US'} />}
+    <meta property="og:site_name" content="Bibliae" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={ogTitle} />
+    <meta property="og:description" content={ogDescription} />
+    <meta property="og:image" content={`${SITE_URL}/og-image.jpg`} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Bibliae — La Parole, la prière, l'Église." />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    {!PRELAUNCH && <meta name="apple-itunes-app" content={`app-id=${APP_STORE_ID}`} />}
+
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icon-32.png" />
+    <link rel="apple-touch-icon" href="/icon-180.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <link rel="preload" as="font" type="font/woff2" crossorigin href={cormorant400} />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href={inter400} />
+
+    <!-- Active l'état initial des animations seulement si le JS tourne -->
+    <script is:inline>document.documentElement.classList.add('js');</script>
+
+    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+  </head>
+  <body>
+    <a class="skip-link" href="#contenu">{lang === 'en' ? 'Skip to content' : 'Aller au contenu'}</a>
+    <slot />
+  </body>
+</html>
