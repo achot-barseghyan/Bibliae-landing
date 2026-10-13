@@ -43,9 +43,10 @@ const particles = Array.from({ length: 22 }, (_, i) => ({
         <ModeText><Fragment slot="live">Application catholique</Fragment><Fragment slot="soon">Bientôt disponible · {RELEASE_LABEL}</Fragment></ModeText>
       </p>
       <h1 id="hero-title">
-        <span class="mask"><span class="line" style="--i:0">La Parole,</span></span>
-        <span class="mask"><span class="line accent" style="--i:1">la prière,</span></span>
-        <span class="mask"><span class="line" style="--i:2">l'Église.</span></span>
+        <span class="mask"><span class="line kicker" style="--i:0">L'application Bible catholique</span></span>
+        <span class="mask"><span class="line" style="--i:1">La Parole,</span></span>
+        <span class="mask"><span class="line accent" style="--i:2">la prière,</span></span>
+        <span class="mask"><span class="line" style="--i:3">l'Église.</span></span>
       </h1>
       <p class="lead" data-reveal data-delay="700">
         Toute la Bible, la liturgie du jour, le chapelet et les bases de la foi, réunis dans une application catholique
@@ -209,6 +210,15 @@ const particles = Array.from({ length: 22 }, (_, i) => ({
   .line {
     display: block;
     animation: line-in 1.3s var(--ease) calc(200ms + var(--i) * 160ms) both;
+  }
+  .kicker {
+    margin-bottom: 0.5em;
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: clamp(18px, 1.8vw, 22px);
+    line-height: 1.3;
+    letter-spacing: 0;
+    color: var(--cream-70);
   }
   .accent {
     font-style: italic;
