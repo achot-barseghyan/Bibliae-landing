@@ -1,8 +1,10 @@
 ---
+import { Picture } from 'astro:assets';
 import PhoneFrame from './PhoneFrame.astro';
 import StoreButtons from './StoreButtons.astro';
 import ModeText from './ModeText.astro';
 import { RELEASE_LABEL } from '../config';
+import lecture from '../assets/screens/ecran-lecture.png';
 
 const particles = Array.from({ length: 22 }, (_, i) => ({
   x: (i * 37) % 100,
@@ -64,30 +66,17 @@ const particles = Array.from({ length: 22 }, (_, i) => ({
       <div data-reveal data-delay="350">
         <div data-float>
           <div class="tilt" data-tilt>
-            <!-- À remplacer par une capture réelle de l'écran d'annotation -->
             <PhoneFrame tone="hero">
-              <div
-                class="reader"
-                role="img"
-                aria-label="Écran de lecture de Bibliae : prologue de l'Évangile selon saint Jean, avec un verset surligné et la barre d'annotation"
-              >
-                <div class="reader-head">
-                  <span class="chap">Jean 1</span>
-                  <span class="tag">PROLOGUE</span>
-                </div>
-                <div class="dropcap">A</div>
-                <p>u commencement était le Verbe, et le Verbe était auprès de Dieu, et le Verbe était Dieu.</p>
-                <p><sup>2</sup> Il était au commencement auprès de Dieu.</p>
-                <p><sup>3</sup> C'est par lui que tout est venu à l'existence.</p>
-                <p class="hl"><sup>4</sup> En lui était la vie, et la vie était la lumière des hommes.</p>
-                <p><sup>5</sup> La lumière brille dans les ténèbres, et les ténèbres ne l'ont pas arrêtée.</p>
-                <div class="toolbar">
-                  <span class="sw gold"></span>
-                  <span class="sw red"></span>
-                  <span>Surligner</span>
-                  <span>Note</span>
-                  <span>Partager</span>
-                </div>
+              <div class="shot">
+                <Picture
+                  src={lecture}
+                  alt="Écran de lecture de Bibliae : prologue de l'Évangile selon saint Jean"
+                  formats={['avif', 'webp']}
+                  widths={[280, Math.min(560, lecture.width)]}
+                  sizes="(max-width: 399px) 240px, 278px"
+                  loading="eager"
+                  fetchpriority="high"
+                />
               </div>
             </PhoneFrame>
             <div class="glare" data-glare aria-hidden="true"></div>
@@ -269,89 +258,22 @@ const particles = Array.from({ length: 22 }, (_, i) => ({
     mix-blend-mode: screen;
   }
 
-  .reader {
-    padding: 58px 22px 0;
+  /* Fond = couleur du haut de la capture, prolongé sous l'encoche */
+  .shot {
     height: 100%;
-    color: var(--ink-text);
+    padding-top: 40px;
+    background: #efe7d3;
   }
-  .reader-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    border-bottom: 1px solid rgba(107, 30, 35, 0.55);
-    padding-bottom: 10px;
+  .shot :global(picture) {
+    display: block;
+    height: 100%;
   }
-  .chap {
-    font-family: var(--serif);
-    font-weight: 500;
-    font-size: 22px;
-    color: var(--ink);
-  }
-  .tag {
-    font-size: 9px;
-    font-weight: 500;
-    letter-spacing: 0.14em;
-    color: var(--gold);
-  }
-  .dropcap {
-    margin-top: 20px;
-    margin-right: 6px;
-    float: left;
-    font-family: var(--serif);
-    font-weight: 500;
-    font-size: 44px;
-    line-height: 0.8;
-    color: var(--oxblood);
-  }
-  .reader p {
-    font-size: 13px;
-    line-height: 1.7;
-  }
-  .reader-head + .dropcap + p {
-    margin-top: 20px;
-  }
-  .reader p + p {
-    margin-top: 10px;
-  }
-  .reader sup {
-    font-size: 8px;
-    color: var(--gold);
-  }
-  .reader .hl {
-    background: rgba(226, 190, 110, 0.38);
-    box-shadow:
-      -3px 0 0 rgba(226, 190, 110, 0.38),
-      3px 0 0 rgba(226, 190, 110, 0.38);
-  }
-  .reader .hl sup {
-    color: var(--oxblood);
-  }
-  .toolbar {
-    position: absolute;
-    left: 14px;
-    right: 14px;
-    bottom: 16px;
-    min-height: 50px;
-    border-radius: 25px;
-    background: rgba(35, 32, 26, 0.92);
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--paper-light);
-  }
-  .sw {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-  }
-  .sw.gold {
-    background: var(--gold-light);
-  }
-  .sw.red {
-    background: var(--oxblood);
-    box-shadow: 0 0 0 1.5px var(--paper);
+  .shot :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
   }
 
   .scroll-hint {

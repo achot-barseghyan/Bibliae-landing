@@ -1,6 +1,7 @@
 ---
 import { Picture } from 'astro:assets';
 import PhoneFrame from './PhoneFrame.astro';
+import lecture from '../assets/screens/ecran-lecture.png';
 import liturgie from '../assets/screens/ecran-liturgie.png';
 import chapelet from '../assets/screens/ecran-chapelet.png';
 import frise from '../assets/screens/ecran-frise.png';
@@ -34,12 +35,13 @@ const steps = [
   },
 ];
 
-// Écran I : maquette HTML en attendant la capture réelle de l'écran de lecture.
+// bg : couleur du haut de la capture, pour prolonger l'écran sous l'encoche
 const shots = [
-  { src: liturgie, alt: 'Écran Jour liturgique de Bibliae : saint du jour, couleur liturgique et lectures de la messe' },
-  { src: chapelet, alt: 'Écran Chapelet de Bibliae : mystères du jour et méditation, grain après grain' },
-  { src: frise, alt: "Écran Compendium de Bibliae : frise chronologique de l'histoire sainte" },
-  { src: paroisse, alt: 'Écran Paroisses de Bibliae : recherche de paroisse et horaires des messes' },
+  { src: lecture, bg: '#efe7d3', alt: 'Écran de lecture de Bibliae : Évangile selon saint Jean, chapitre 1' },
+  { src: liturgie, bg: '#1a2628', alt: "Écran Le Jour de Bibliae : cercle de l'année liturgique, saint du jour et couleur liturgique" },
+  { src: chapelet, bg: '#f7f1e2', alt: 'Écran Chapelet de Bibliae : mystères du jour et méditation, grain après grain' },
+  { src: frise, bg: '#101627', alt: "Écran Compendium de Bibliae : frise chronologique de l'histoire sainte" },
+  { src: paroisse, bg: '#101627', alt: 'Écran Paroisses de Bibliae : recherche de paroisse et horaires des messes' },
 ];
 ---
 
@@ -70,37 +72,16 @@ const shots = [
         <div class="stage-inner">
           <div class="glow" aria-hidden="true"></div>
           <PhoneFrame tone="light">
-            <div
-              class="scr is-active reading"
-              data-screen="0"
-              role="img"
-              aria-label="Écran de lecture de Bibliae : Genèse 1 avec un verset souligné et une note personnelle"
-            >
-              <div class="reading-head">
-                <span class="chap">Genèse 1</span>
-                <span class="count">1 / 50</span>
-              </div>
-              <p class="first"><sup>1</sup> Au commencement, Dieu créa le ciel et la terre.</p>
-              <p>
-                <sup>2</sup> La terre était informe et vide, les ténèbres étaient au-dessus de l'abîme et le souffle de Dieu
-                planait au-dessus des eaux.
-              </p>
-              <p><span class="underline"><sup>3</sup> Dieu dit : « Que la lumière soit. » Et la lumière fut.</span></p>
-              <div class="mynote">
-                <div class="mynote-label">MA NOTE</div>
-                <div class="mynote-text">La première parole de Dieu est lumière.</div>
-              </div>
-            </div>
             {
               shots.map((s, i) => (
-                <div class="scr shot" data-screen={i + 1}>
+                <div class:list={['scr shot', { 'is-active': i === 0 }]} data-screen={i} style={`background: ${s.bg}`}>
                   <Picture
                     src={s.src}
                     alt={s.alt}
                     formats={['avif', 'webp']}
                     widths={[280, Math.min(560, s.src.width)]}
                     sizes="(max-width: 399px) 240px, 278px"
-                    loading="lazy"
+                    loading={i === 0 ? 'eager' : 'lazy'}
                     decoding="async"
                   />
                 </div>
@@ -284,64 +265,6 @@ const shots = [
   .shot :global(picture) {
     display: block;
     height: 100%;
-  }
-
-  .reading {
-    padding: 58px 22px 0;
-    color: var(--ink-text);
-  }
-  .reading-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    border-bottom: 1px solid rgba(107, 30, 35, 0.55);
-    padding-bottom: 10px;
-  }
-  .chap {
-    font-family: var(--serif);
-    font-weight: 500;
-    font-size: 22px;
-    color: var(--ink);
-  }
-  .count {
-    font-size: 9px;
-    letter-spacing: 0.12em;
-    color: rgba(35, 32, 26, 0.55);
-  }
-  .reading p {
-    margin-top: 9px;
-    font-size: 13px;
-    line-height: 1.7;
-  }
-  .reading p.first {
-    margin-top: 18px;
-  }
-  .reading sup {
-    font-size: 8px;
-    color: var(--gold);
-  }
-  .underline {
-    border-bottom: 1.5px solid var(--oxblood);
-  }
-  .mynote {
-    margin-top: 16px;
-    padding: 12px 14px;
-    background: var(--paper-dark);
-    box-shadow: inset 0 0 0 0.5px rgba(181, 137, 46, 0.6);
-  }
-  .mynote-label {
-    font-size: 8.5px;
-    font-weight: 600;
-    letter-spacing: 0.14em;
-    color: var(--gold);
-  }
-  .mynote-text {
-    margin-top: 4px;
-    font-family: var(--serif-text);
-    font-style: italic;
-    font-size: 13px;
-    line-height: 1.4;
-    color: var(--ink);
   }
 
   @media (max-width: 899px) {

@@ -14,7 +14,7 @@ npm run check
 
 ## Pré-lancement / sortie
 
-Le site est en mode pré-lancement (« Bientôt disponible · début 2027 », boutons stores désactivés).
+Le site est en mode pré-lancement (« Bientôt disponible · fin 2026 », boutons stores désactivés).
 Le jour de la sortie : dans `src/config.ts`, passer `PRELAUNCH` à `false`, renseigner les liens stores, puis rebuilder.
 
 Pour un texte qui dépend du mode, utiliser `ModeText` :
@@ -22,7 +22,7 @@ Pour un texte qui dépend du mode, utiliser `ModeText` :
 ```astro
 <ModeText>
   <Fragment slot="live">Télécharger</Fragment>
-  <Fragment slot="soon">Début 2027</Fragment>
+  <Fragment slot="soon">Fin 2026</Fragment>
 </ModeText>
 ```
 
