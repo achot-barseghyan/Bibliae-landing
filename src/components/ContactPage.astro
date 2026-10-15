@@ -1,0 +1,1036 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import Footer from './Footer.astro';
+import icon from '../assets/icone/icon-180.png';
+import { CONTACT_EMAIL, SITE_URL } from '../config';
+
+interface Props {
+  lang: 'fr' | 'en';
+}
+
+const { lang } = Astro.props;
+const MAX = 2000;
+
+const PATHS = { fr: '/contact', en: '/en/contact' };
+const t = {
+  fr: {
+    title: 'Contact — Bibliae',
+    description:
+      "Une question, une erreur dans un texte, une idée pour l'application ou votre paroisse : écrivez à l'équipe Bibliae, chaque message reçoit une réponse.",
+    ogDescription: 'Écrivez-nous, nous lisons tout.',
+    nav: 'Navigation principale',
+    home: 'Bibliae, accueil',
+    langs: 'Langue',
+    back: "Retour à l'accueil",
+    h1: ['Écrivez-nous,', 'nous lisons tout.'],
+    lead: "Une question, une erreur dans un texte, une idée pour l'application ou votre paroisse : chaque message est lu et reçoit une réponse.",
+    byMail: 'Par courriel',
+    delay: 'Délai de réponse',
+    delayNote: 'Sous quelques jours, en français ou en anglais.',
+    formTitle: 'Votre message',
+    topic: 'Objet',
+    topics: [
+      { k: 'q', label: 'Une question', hint: "Votre question sur l'application…" },
+      { k: 'err', label: 'Signaler une erreur', hint: 'Livre, chapitre et verset, ou écran concerné, et ce qui ne va pas…' },
+      { k: 'idea', label: 'Une suggestion', hint: "L'idée que vous aimeriez voir dans Bibliae…" },
+      { k: 'par', label: 'Ma paroisse', hint: "Nom de la paroisse, ville, et l'information à corriger ou ajouter…" },
+      { k: 'press', label: 'Presse et partenariat', hint: 'Présentez-vous et votre projet…' },
+    ],
+    name: 'Nom',
+    namePh: 'Votre prénom',
+    email: 'Courriel',
+    emailPh: 'vous@exemple.fr',
+    message: 'Message',
+    privacy: 'Votre adresse sert uniquement à vous répondre.',
+    send: 'Envoyer',
+    thanks: 'Merci',
+    sent: 'Votre message est bien parti. Nous vous répondrons par courriel sous quelques jours.',
+    sending: 'Envoi…',
+    errServer: "L'envoi n'a pas abouti. Réessayez dans un instant, ou écrivez directement à",
+    noJsSent: 'Merci, votre message est bien parti. Nous vous répondrons sous quelques jours.',
+    noJsError: "L'envoi n'a pas abouti. Vérifiez votre adresse et votre message, puis réessayez, ou écrivez directement à",
+    again: 'Écrire un autre message',
+    errEmail: 'Indiquez une adresse courriel valide pour recevoir la réponse.',
+    errShort: 'Votre message est un peu court.',
+    verseLabel: 'Citation biblique',
+    verse: '« Demandez, on vous donnera ; frappez, on vous ouvrira. »',
+    verseRef: 'Matthieu 7, 7',
+  },
+  en: {
+    title: 'Contact — Bibliae',
+    description:
+      'A question, a mistake in a text, an idea for the app or your parish: write to the Bibliae team, every message gets a reply.',
+    ogDescription: 'Write to us, we read everything.',
+    nav: 'Main navigation',
+    home: 'Bibliae, home',
+    langs: 'Language',
+    back: 'Back to home',
+    h1: ['Write to us,', 'we read everything.'],
+    lead: 'A question, a mistake in a text, an idea for the app or your parish: every message is read and answered.',
+    byMail: 'By email',
+    delay: 'Response time',
+    delayNote: 'Within a few days, in English or French.',
+    formTitle: 'Your message',
+    topic: 'Subject',
+    topics: [
+      { k: 'q', label: 'A question', hint: 'Your question about the app…' },
+      { k: 'err', label: 'Report a mistake', hint: "Book, chapter and verse, or the screen involved, and what's wrong…" },
+      { k: 'idea', label: 'A suggestion', hint: "The idea you'd like to see in Bibliae…" },
+      { k: 'par', label: 'My parish', hint: 'Parish name, town, and the information to correct or add…' },
+      { k: 'press', label: 'Press and partnerships', hint: 'Tell us about yourself and your project…' },
+    ],
+    name: 'Name',
+    namePh: 'Your first name',
+    email: 'Email',
+    emailPh: 'you@example.com',
+    message: 'Message',
+    privacy: 'Your address is only used to reply to you.',
+    send: 'Send',
+    thanks: 'Thank you',
+    sent: 'Your message is on its way. We will reply by email within a few days.',
+    sending: 'Sending…',
+    errServer: 'Sending failed. Try again in a moment, or write directly to',
+    noJsSent: 'Thank you, your message is on its way. We will reply within a few days.',
+    noJsError: 'Sending failed. Check your address and message, then try again, or write directly to',
+    again: 'Write another message',
+    errEmail: 'Enter a valid email address so we can reply.',
+    errShort: 'Your message is a little short.',
+    verseLabel: 'Bible quote',
+    verse: '“Ask, and it will be given you; knock, and it will be opened to you.”',
+    verseRef: 'Matthew 7:7',
+  },
+}[lang];
+
+const alternates = [
+  { hreflang: 'fr', href: new URL(PATHS.fr, SITE_URL).href },
+  { hreflang: 'en', href: new URL(PATHS.en, SITE_URL).href },
+  { hreflang: 'x-default', href: new URL(PATHS.fr, SITE_URL).href },
+];
+---
+
+<Base
+  lang={lang}
+  title={t.title}
+  description={t.description}
+  ogTitle={t.title}
+  ogDescription={t.ogDescription}
+  alternates={alternates}
+>
+  <header class="top">
+    <nav class="top-inner container" aria-label={t.nav}>
+      <a class="brand" href="/" aria-label={t.home}>
+        <Image src={icon} alt="" width={34} height={34} densities={[1, 2]} loading="eager" />
+        <span>Bibliae</span>
+      </a>
+      <div class="top-right">
+        <a class="back" href="/">
+          <svg width="8" height="14" viewBox="0 0 9 16" fill="none" aria-hidden="true"><path d="M7.5 1L1.5 8l6 7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          {t.back}
+        </a>
+        <div class="langs" role="group" aria-label={t.langs}>
+          <a href={PATHS.fr} hreflang="fr" lang="fr" aria-current={lang === 'fr' ? 'page' : undefined}>FR</a>
+          <a href={PATHS.en} hreflang="en" lang="en" aria-current={lang === 'en' ? 'page' : undefined}>EN</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main id="contenu">
+    <section class="hero" aria-labelledby="contact-title">
+      <div class="halo" aria-hidden="true"></div>
+      <svg class="ring" data-spin style="--spin:140s" width="760" height="760" viewBox="0 0 760 760" fill="none" aria-hidden="true">
+        <circle cx="380" cy="380" r="376" stroke="#B5892E" stroke-width="0.6" opacity="0.32"></circle>
+        <circle cx="380" cy="380" r="362" stroke="#B5892E" stroke-width="0.6" opacity="0.28" stroke-dasharray="2 9"></circle>
+        <circle cx="380" cy="380" r="290" stroke="#6B1E23" stroke-width="1" opacity="0.5" stroke-dasharray="1 14"></circle>
+        <path d="M380 0v40M380 720v40M0 380h40M720 380h40M111 111l28 28M621 621l28 28M649 111l-28 28M139 621l-28 28" stroke="#B5892E" stroke-width="0.8" opacity="0.45"></path>
+      </svg>
+
+      <div class="grid container">
+        <div class="copy">
+          <p class="badge" data-reveal><span class="dot" aria-hidden="true"></span>Contact</p>
+          <h1 id="contact-title">
+            <span class="mask"><span class="line" style="--i:0">{t.h1[0]}</span></span>
+            <span class="mask"><span class="line accent" style="--i:1">{t.h1[1]}</span></span>
+          </h1>
+          <p class="lead" data-reveal data-delay="500">{t.lead}</p>
+
+          <div class="channels" data-reveal data-delay="700">
+            <a class="channel link" href={`mailto:${CONTACT_EMAIL}`}>
+              <span class="disc" aria-hidden="true">
+                <svg width="18" height="14" viewBox="0 0 18 14" fill="none"><rect x="0.75" y="0.75" width="16.5" height="12.5" rx="1.5" stroke="#E2BE6E" stroke-width="1.1"></rect><path d="M1 1.5l8 6 8-6" stroke="#E2BE6E" stroke-width="1.1" stroke-linejoin="round"></path></svg>
+              </span>
+              <span class="ch-text">
+                <span class="ch-label">{t.byMail}</span>
+                <span class="ch-mail">{CONTACT_EMAIL}</span>
+              </span>
+              <svg width="8" height="14" viewBox="0 0 9 16" fill="none" aria-hidden="true"><path d="M1.5 1l6 7-6 7" stroke="#E2BE6E" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </a>
+            <div class="channel">
+              <span class="disc" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7.2" stroke="#E2BE6E" stroke-width="1.1"></circle><path d="M8 3.8V8l2.8 1.8" stroke="#E2BE6E" stroke-width="1.1" stroke-linecap="round"></path></svg>
+              </span>
+              <span class="ch-text">
+                <span class="ch-label">{t.delay}</span>
+                <span class="ch-note">{t.delayNote}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Carte en forme de vitrail : cadre doré, verre coloré, parchemin -->
+        <div class="window" data-reveal data-delay="300">
+          <div class="layer frame" aria-hidden="true"><div class="arch"></div><div class="rest"></div></div>
+          <div class="layer glass" aria-hidden="true"><div class="arch"></div><div class="rest"></div></div>
+          <div class="layer paper" aria-hidden="true"><div class="arch"></div><div class="rest"></div></div>
+
+          <div class="window-body">
+            <!-- Retour du formulaire sans JS : /api/contact redirige vers #envoye ou #erreur -->
+            <p class="nojs-note ok" id="envoye">{t.noJsSent}</p>
+            <p class="nojs-note ko" id="erreur">{t.noJsError} <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</p>
+
+            <form
+              class="form"
+              data-contact
+              data-err-email={t.errEmail}
+              data-err-short={t.errShort}
+              data-err-server={`${t.errServer} ${CONTACT_EMAIL}.`}
+              data-sending={t.sending}
+              action="/api/contact"
+              method="post"
+              novalidate
+            >
+              <div class="form-head">
+                <div class="rose" data-spin style="--spin:90s" aria-hidden="true"></div>
+                <h2>{t.formTitle}</h2>
+                <div class="glow" aria-hidden="true"></div>
+              </div>
+
+              <fieldset class="topics">
+                <legend class="label">{t.topic}</legend>
+                <div class="chips">
+                  {
+                    t.topics.map((topic, i) => (
+                      <label class="chip">
+                        <input class="sr-only" type="radio" name="objet" value={topic.k} data-hint={topic.hint} checked={i === 0} />
+                        <span>{topic.label}</span>
+                      </label>
+                    ))
+                  }
+                </div>
+              </fieldset>
+
+              <div class="row">
+                <label class="field">
+                  <span class="label">{t.name}</span>
+                  <input class="line-input" name="nom" autocomplete="given-name" placeholder={t.namePh} />
+                </label>
+                <label class="field">
+                  <span class="label">{t.email}</span>
+                  <input
+                    class="line-input"
+                    type="email"
+                    name="courriel"
+                    autocomplete="email"
+                    required
+                    placeholder={t.emailPh}
+                    aria-describedby="contact-error"
+                    data-email
+                  />
+                </label>
+              </div>
+
+              <label class="field msg">
+                <span class="msg-head">
+                  <span class="label">{t.message}</span>
+                  <span class="count" data-count aria-hidden="true">0 / {MAX}</span>
+                </span>
+                <textarea
+                  name="message"
+                  rows="6"
+                  maxlength={MAX}
+                  required
+                  placeholder={t.topics[0].hint}
+                  aria-describedby="contact-error"
+                  data-msg></textarea>
+              </label>
+
+              <input type="hidden" name="lang" value={lang} />
+              <!-- Pot de miel anti-robots : invisible et ignoré par les humains -->
+              <label class="hp" aria-hidden="true">Site<input name="site" tabindex="-1" autocomplete="off" /></label>
+
+              <p class="error" id="contact-error" role="alert" data-error></p>
+
+              <div class="actions">
+                <span class="privacy">{t.privacy}</span>
+                <button class="send" type="submit" data-send>
+                  <span data-send-label>{t.send}</span>
+                  <svg width="16" height="12" viewBox="0 0 16 12" fill="none" aria-hidden="true"><path d="M1 6h13M9.5 1.5L14 6l-4.5 4.5" stroke="#E2BE6E" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                  <span class="shine" data-shine style="--shine-delay:800ms" aria-hidden="true"></span>
+                </button>
+              </div>
+            </form>
+
+            <div class="done" data-done hidden tabindex="-1">
+              <div class="seal">
+                <div class="seal-halo" data-pulse aria-hidden="true"></div>
+                <div class="seal-disc" aria-hidden="true">
+                  <svg width="30" height="22" viewBox="0 0 30 22" fill="none"><path d="M2 11.5l8.5 8L28 2" stroke="#E2BE6E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                </div>
+              </div>
+              <h2>{t.thanks}<span data-thanks>.</span></h2>
+              <p>{t.sent}</p>
+              <button class="again" type="button" data-again>{t.again}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="verse" aria-label={t.verseLabel}>
+      <figure>
+        <blockquote data-reveal><p>{t.verse}</p></blockquote>
+        <figcaption data-reveal data-delay="200"><cite>{t.verseRef}</cite></figcaption>
+      </figure>
+    </section>
+  </main>
+
+  <Footer lang={lang} />
+</Base>
+
+<script>
+  import '../scripts/motion';
+
+  const form = document.querySelector<HTMLFormElement>('[data-contact]')!;
+  const done = document.querySelector<HTMLElement>('[data-done]')!;
+  const email = form.querySelector<HTMLInputElement>('[data-email]')!;
+  const msg = form.querySelector<HTMLTextAreaElement>('[data-msg]')!;
+  const count = form.querySelector<HTMLElement>('[data-count]')!;
+  const error = form.querySelector<HTMLElement>('[data-error]')!;
+  const sendBtn = form.querySelector<HTMLButtonElement>('[data-send]')!;
+  const sendLabel = form.querySelector<HTMLElement>('[data-send-label]')!;
+  const { errEmail = '', errShort = '', errServer = '', sending = '' } = form.dataset;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const setError = (text: string, field?: HTMLElement) => {
+    error.textContent = text;
+    email.toggleAttribute('aria-invalid', field === email);
+    msg.toggleAttribute('aria-invalid', field === msg);
+    field?.focus();
+  };
+
+  form.addEventListener('change', (e) => {
+    const t = e.target as HTMLInputElement;
+    if (t.name === 'objet') msg.placeholder = t.dataset.hint ?? '';
+  });
+  email.addEventListener('input', () => setError(''));
+  msg.addEventListener('input', () => {
+    count.textContent = `${msg.value.length} / ${msg.maxLength}`;
+    setError('');
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (sendBtn.disabled) return;
+    const data = Object.fromEntries(new FormData(form));
+    const name = String(data.nom ?? '').trim();
+    if (!/^\S+@\S+\.\S+$/.test(email.value.trim())) return setError(errEmail, email);
+    if (msg.value.trim().length < 10) return setError(errShort, msg);
+
+    const label = sendLabel.textContent;
+    sendBtn.disabled = true;
+    sendLabel.textContent = sending;
+    let res: { ok: boolean; error?: string } = { ok: false, error: 'server' };
+    try {
+      const r = await fetch(form.action, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(data),
+      });
+      res = await r.json();
+    } catch {}
+    sendBtn.disabled = false;
+    sendLabel.textContent = label;
+
+    if (!res.ok) {
+      if (res.error === 'email') return setError(errEmail, email);
+      if (res.error === 'short') return setError(errShort, msg);
+      return setError(errServer);
+    }
+
+    done.querySelector('[data-thanks]')!.textContent = name ? `, ${name.split(/\s+/)[0]}` : '.';
+    form.hidden = true;
+    done.hidden = false;
+    done.focus({ preventScroll: true });
+    if (!reduced)
+      done.animate(
+        [
+          { opacity: 0, transform: 'scale(0.96)', filter: 'blur(6px)' },
+          { opacity: 1, transform: 'none', filter: 'blur(0)' },
+        ],
+        { duration: 900, easing: 'cubic-bezier(.2,.7,.2,1)' },
+      );
+  });
+
+  done.querySelector('[data-again]')!.addEventListener('click', () => {
+    msg.value = '';
+    count.textContent = `0 / ${msg.maxLength}`;
+    done.hidden = true;
+    form.hidden = false;
+    msg.focus();
+  });
+</script>
+
+<style>
+  /* ---------- En-tête ---------- */
+  .top {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    z-index: 50;
+    padding: 16px 0;
+    background: rgba(21, 18, 14, 0.82);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border-bottom: 0.5px solid rgba(226, 190, 110, 0.25);
+  }
+  .top-inner {
+    padding: 0 var(--gutter);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 25px;
+    letter-spacing: 0.01em;
+    color: var(--paper-light);
+  }
+  .brand:hover {
+    color: var(--paper-light);
+  }
+  .brand img {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  }
+  .back {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 40px;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(247, 241, 227, 0.78);
+  }
+  .top-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .langs {
+    display: flex;
+    padding: 3px;
+    border-radius: 18px;
+    box-shadow: inset 0 0 0 0.5px rgba(226, 190, 110, 0.5);
+  }
+  .langs a {
+    height: 30px;
+    padding: 0 14px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: rgba(247, 241, 227, 0.75);
+    transition:
+      background 250ms,
+      color 250ms;
+  }
+  .langs a:hover {
+    color: var(--paper-light);
+  }
+  .langs a[aria-current='page'] {
+    background: var(--gold-light);
+    color: var(--ink-dark);
+  }
+  @media (max-width: 560px) {
+    .back {
+      display: none;
+    }
+  }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    position: relative;
+    padding: 150px var(--gutter) 110px;
+    background: var(--ink-dark);
+    overflow: hidden;
+  }
+  .halo {
+    position: absolute;
+    left: 18%;
+    top: 46%;
+    width: 900px;
+    height: 900px;
+    margin: -450px 0 0 -450px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(181, 137, 46, 0.2), rgba(107, 30, 35, 0.12) 40%, transparent 68%);
+    pointer-events: none;
+  }
+  .ring {
+    position: absolute;
+    left: 18%;
+    top: 46%;
+    margin: -380px 0 0 -380px;
+    max-width: none;
+    pointer-events: none;
+  }
+  .grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+    gap: 64px;
+    align-items: start;
+  }
+  .copy {
+    padding-top: 10px;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 32px;
+    padding: 0 14px;
+    border-radius: 16px;
+    box-shadow: inset 0 0 0 0.5px rgba(226, 190, 110, 0.5);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+  }
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--gold-light);
+  }
+  h1 {
+    margin-top: 26px;
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(52px, 7.4vw, 96px);
+    line-height: 0.95;
+    letter-spacing: -0.015em;
+    color: var(--paper-light);
+  }
+  .mask {
+    display: block;
+    overflow: hidden;
+    padding-bottom: 0.08em;
+  }
+  .line {
+    display: block;
+    animation: line-in 1.3s var(--ease) calc(200ms + var(--i) * 160ms) both;
+  }
+  .accent {
+    font-style: italic;
+    color: var(--gold-light);
+  }
+  @keyframes line-in {
+    from {
+      transform: translateY(110%) rotate(3deg);
+      opacity: 0;
+    }
+  }
+  .lead {
+    margin-top: 28px;
+    max-width: 440px;
+    font-size: 18px;
+    line-height: 1.65;
+    color: var(--cream-70);
+    text-wrap: pretty;
+  }
+
+  .channels {
+    margin-top: 44px;
+    display: flex;
+    flex-direction: column;
+    border-top: 0.5px solid rgba(226, 190, 110, 0.3);
+  }
+  .channel {
+    padding: 22px 0;
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 16px;
+    align-items: center;
+    border-bottom: 0.5px solid rgba(226, 190, 110, 0.3);
+  }
+  .channel.link {
+    grid-template-columns: 44px minmax(0, 1fr) 12px;
+    color: var(--paper-light);
+    transition: padding 0.4s var(--ease);
+  }
+  .channel.link:hover {
+    padding-left: 8px;
+  }
+  .disc {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 0.5px rgba(226, 190, 110, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ch-text {
+    min-width: 0;
+  }
+  .ch-label {
+    display: block;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+  }
+  .ch-mail {
+    display: block;
+    margin-top: 5px;
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 26px;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+  }
+  .ch-note {
+    display: block;
+    margin-top: 5px;
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 18px;
+    color: rgba(247, 241, 227, 0.82);
+  }
+
+  /* ---------- Vitrail ---------- */
+  .window {
+    position: relative;
+    filter: drop-shadow(0 40px 60px rgba(0, 0, 0, 0.6));
+  }
+  .layer {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    pointer-events: none;
+  }
+  .arch {
+    aspect-ratio: 100 / 62;
+    clip-path: polygon(
+      0% 100%, 2.2% 73.5%, 8.5% 48.8%, 18.6% 27.6%, 31.7% 11.4%, 41.7% 3.9%, 50% 0%,
+      58.3% 3.9%, 68.3% 11.4%, 81.4% 27.6%, 91.5% 48.8%, 97.8% 73.5%, 100% 100%
+    );
+  }
+  .rest {
+    flex: 1;
+    margin-top: -1px;
+  }
+  .frame {
+    inset: 0;
+  }
+  .frame .arch,
+  .frame .rest {
+    background: var(--gold);
+  }
+  .frame .rest {
+    border-radius: 0 0 8px 8px;
+  }
+  .glass {
+    inset: 4px;
+    --lead: repeating-linear-gradient(58deg, transparent 0 20px, rgba(26, 21, 16, 0.92) 20px 23px),
+      repeating-linear-gradient(-58deg, transparent 0 20px, rgba(26, 21, 16, 0.92) 20px 23px);
+  }
+  .glass .arch {
+    background:
+      var(--lead),
+      radial-gradient(30% 40% at 50% 8%, #f0d58e, transparent 70%),
+      radial-gradient(35% 45% at 18% 70%, #c0383f, transparent 70%),
+      radial-gradient(35% 45% at 82% 70%, #2e6b5a, transparent 70%),
+      radial-gradient(30% 40% at 30% 35%, #e2be6e, transparent 70%),
+      radial-gradient(30% 40% at 70% 35%, #a8282e, transparent 70%),
+      #24406b;
+  }
+  .glass .rest {
+    border-radius: 0 0 5px 5px;
+    background:
+      linear-gradient(#1a1510, #1a1510) top / 100% 5px no-repeat,
+      var(--lead),
+      radial-gradient(30% 14% at 8% 12%, #e2be6e, transparent 70%),
+      radial-gradient(30% 16% at 92% 22%, #c0383f, transparent 70%),
+      radial-gradient(30% 16% at 6% 40%, #2e6b5a, transparent 70%),
+      radial-gradient(30% 14% at 94% 52%, #e2be6e, transparent 70%),
+      radial-gradient(30% 16% at 8% 68%, #a8282e, transparent 70%),
+      radial-gradient(30% 16% at 92% 82%, #2e6b5a, transparent 70%),
+      radial-gradient(40% 14% at 50% 100%, #e2be6e, transparent 70%),
+      #24406b;
+  }
+  .paper {
+    inset: 26px;
+    filter: drop-shadow(0 0 0.5px #1a1510) drop-shadow(0 0 2px rgba(26, 21, 16, 0.9));
+  }
+  .paper .arch,
+  .paper .rest {
+    background: var(--paper);
+  }
+  .paper .rest {
+    border-radius: 0 0 3px 3px;
+  }
+  .window-body {
+    position: relative;
+    padding: 27% clamp(46px, 6vw, 70px) 64px;
+    color: var(--ink);
+  }
+
+  /* ---------- Formulaire ---------- */
+  .form-head {
+    text-align: center;
+  }
+  .rose {
+    width: 58px;
+    height: 58px;
+    margin: 0 auto;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle, #f0d58e 0 15%, #1a1510 15% 21%, transparent 21%),
+      repeating-conic-gradient(#a8282e 0 12deg, #1a1510 12deg 15deg, #24406b 15deg 27deg, #1a1510 27deg 30deg, #2e6b5a 30deg 42deg, #1a1510 42deg 45deg);
+    box-shadow: 0 0 0 3px #1a1510, 0 0 0 4.5px var(--gold), 0 0 26px rgba(226, 190, 110, 0.55);
+  }
+  .form-head h2 {
+    margin-top: 14px;
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 34px;
+    line-height: 1;
+  }
+  .glow {
+    margin: 14px auto 0;
+    width: 52%;
+    height: 9px;
+    background: radial-gradient(50% 100% at 50% 50%, rgb(181, 137, 46) 0%, rgba(115, 115, 115, 0) 100%);
+  }
+
+  .label {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--oxblood);
+  }
+  .topics {
+    margin: 30px 0 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+  }
+  .topics legend {
+    padding: 0;
+  }
+  .chips {
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .chip span {
+    white-space: nowrap;
+    min-height: 38px;
+    padding: 0 15px;
+    border-radius: 19px;
+    box-shadow: inset 0 0 0 0.5px rgba(35, 32, 26, 0.35);
+    display: flex;
+    align-items: center;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--ink);
+    cursor: pointer;
+    transition:
+      background 0.35s,
+      color 0.35s;
+  }
+  .chip input:checked + span {
+    background: var(--ink);
+    box-shadow: none;
+    color: var(--paper-light);
+  }
+  .chip input:focus-visible + span {
+    outline: 2px solid var(--oxblood);
+    outline-offset: 2px;
+  }
+
+  .row {
+    margin-top: 26px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+    gap: 18px;
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .line-input {
+    height: 48px;
+    padding: 0 2px;
+    border: none;
+    border-bottom: 1px solid rgba(35, 32, 26, 0.3);
+    border-radius: 0;
+    background: transparent;
+    outline: none;
+    font-family: var(--serif);
+    font-size: 21px;
+    color: var(--ink);
+  }
+  .line-input:focus {
+    border-bottom-color: var(--oxblood);
+  }
+  .line-input[aria-invalid] {
+    border-bottom-color: #8a2a2f;
+  }
+  .msg {
+    margin-top: 22px;
+  }
+  .msg-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .count {
+    font-size: 11px;
+    color: rgba(35, 32, 26, 0.5);
+  }
+  textarea {
+    padding: 14px 16px;
+    border: none;
+    border-radius: 4px;
+    background: rgba(255, 252, 243, 0.6);
+    box-shadow: inset 0 0 0 0.5px rgba(35, 32, 26, 0.28);
+    outline: none;
+    resize: vertical;
+    font-family: var(--serif-text);
+    font-size: 18px;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+  textarea:focus,
+  textarea[aria-invalid] {
+    box-shadow: inset 0 0 0 1px var(--oxblood);
+  }
+  ::placeholder {
+    color: rgba(35, 32, 26, 0.42);
+  }
+
+  .error {
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 15px;
+    color: #8a2a2f;
+  }
+  .error:not(:empty) {
+    margin-top: 12px;
+  }
+
+  .actions {
+    margin-top: 28px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .privacy {
+    max-width: 250px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: rgba(35, 32, 26, 0.6);
+  }
+  .send {
+    position: relative;
+    overflow: hidden;
+    min-height: 56px;
+    padding: 0 28px;
+    border: none;
+    border-radius: 28px 28px 8px 8px;
+    background: var(--oxblood);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--paper-light);
+    cursor: pointer;
+    transition:
+      transform 0.3s var(--ease),
+      box-shadow 0.3s;
+  }
+  .send:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 30px rgba(107, 30, 35, 0.4);
+  }
+  .shine {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 40%;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+    transform: translateX(-150%);
+    pointer-events: none;
+  }
+
+  /* ---------- Message envoyé ---------- */
+  .done {
+    min-height: 440px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    outline: none;
+  }
+  .hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+  .nojs-note {
+    display: none;
+    margin-bottom: 22px;
+    padding: 12px 14px;
+    border-radius: 4px;
+    font-family: var(--serif-text);
+    font-size: 16px;
+    line-height: 1.45;
+  }
+  .nojs-note:target {
+    display: block;
+  }
+  .nojs-note.ok {
+    background: rgba(94, 122, 78, 0.14);
+    color: #3f5a33;
+  }
+  .nojs-note.ko {
+    background: rgba(138, 42, 47, 0.1);
+    color: #8a2a2f;
+  }
+  .nojs-note a {
+    color: inherit;
+    text-decoration: underline;
+  }
+  .send:disabled {
+    opacity: 0.7;
+    cursor: progress;
+    transform: none;
+  }
+  .done[hidden],
+  .form[hidden] {
+    display: none;
+  }
+  .seal {
+    position: relative;
+    width: 84px;
+    height: 84px;
+  }
+  .seal-halo {
+    position: absolute;
+    inset: -26px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(181, 137, 46, 0.4), transparent 70%);
+  }
+  .seal-disc {
+    position: relative;
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    background: var(--oxblood);
+    box-shadow: inset 0 0 0 1px rgba(226, 190, 110, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .done h2 {
+    margin-top: 30px;
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 42px;
+    line-height: 1;
+  }
+  .done p {
+    margin-top: 16px;
+    max-width: 330px;
+    font-family: var(--serif-text);
+    font-size: 18px;
+    line-height: 1.5;
+    color: rgba(35, 32, 26, 0.74);
+    text-wrap: pretty;
+  }
+  .again {
+    margin-top: 26px;
+    min-height: 44px;
+    padding: 0;
+    border: 0;
+    background: none;
+    display: flex;
+    align-items: center;
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--oxblood);
+    cursor: pointer;
+  }
+
+  /* ---------- Verset ---------- */
+  .verse {
+    background: var(--oxblood);
+    padding: 80px var(--gutter);
+    border-top: 0.5px solid rgba(226, 190, 110, 0.4);
+  }
+  blockquote {
+    margin: 0 auto;
+    max-width: 820px;
+    text-align: center;
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(30px, 4vw, 48px);
+    line-height: 1.2;
+    color: var(--paper-light);
+    text-wrap: balance;
+  }
+  figcaption {
+    margin-top: 20px;
+    text-align: center;
+  }
+  cite {
+    font-style: normal;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+  }
+</style>

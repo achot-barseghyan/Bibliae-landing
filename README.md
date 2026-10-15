@@ -34,6 +34,14 @@ Pour un texte qui dépend du mode, utiliser `ModeText` :
 - `src/scripts/motion.ts` : apparitions, parallaxe, barre de progression, nav, inclinaison, téléphone fixe.
 - `scripts/gen-icons.mjs` : regénère `public/favicon.ico` et `public/og-image.jpg` à partir de `assets/icone/icon-1024.png`.
 
+## Formulaire de contact
+
+`/contact` et `/en/contact` envoient vers `/api/contact` (`src/pages/api/contact.ts`), la seule route rendue côté serveur (fonction Vercel via `@astrojs/vercel`). Le message part vers `CONTACT_EMAIL` (`src/config.ts`) par l'API Resend, avec l'adresse du visiteur en « répondre à ».
+
+- Variables (voir `.env.example`) : `RESEND_API_KEY` (obligatoire), `CONTACT_FROM` (facultatif). En local dans `.env`, en production dans Vercel › Settings › Environment Variables.
+- Le domaine de `CONTACT_FROM` (bibliae.app) doit être vérifié chez Resend (enregistrements DNS).
+- Anti-spam : champ caché « pot de miel » et refus des requêtes d'un autre domaine.
+
 ## Reste à fournir avant la mise en ligne
 
 - Capture de l'écran de lecture / annotation (hero et étape I sont encore des maquettes HTML).

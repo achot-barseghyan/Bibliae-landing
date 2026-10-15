@@ -41,6 +41,7 @@ We only process what is needed for the features you use.
 | Technical data (IP address, device model, app version) | Security and reliable operation | Logs of our host and the services called | 30 days at our host |
 | Push token (if you enable notifications) | Send the saint of the day or prayer reminders | Apple / Google notification services | Until you turn them off |
 | Anonymous crash reports (if a tool is used) | Fix bugs | Tool name | 90 days |
+| Website contact form (name, email, message) | Reply to you | Delivered by Resend to our inbox | As long as needed to handle your request, 3 years at most |
 
 ## 3. What we don't do
 
@@ -64,6 +65,7 @@ Each permission is requested **when you use the related feature**, after a scree
 We use a few service providers only to run the service. They may not use your data for their own purposes.
 
 - **Server hosting**: Vercel Inc. (United States), certified under the EU–U.S. Data Privacy Framework.
+- **Contact form delivery**: Resend (United States). Only your name, email and message are sent to it, to deliver them to us.
 - **Liturgical texts**: AELF (api.aelf.org) and CatéGPT (categpt.chat). Only the requested date is sent.
 - **Parishes**: open-church.io. **Addresses and geolocation**: Base Adresse Nationale (api-adresse.data.gouv.fr, a French government service). Only the search text or your position at the time of the search is sent, never your identity.
 - **Notifications**: Apple Push Notification service and Firebase Cloud Messaging (Google), if you enable notifications.

@@ -132,6 +132,7 @@ const alternates = [
     <div class="wrap bottom-inner">
       <span>© 2026 Bibliae</span>
       <nav class="bottom-links">
+        <a href={lang === 'en' ? '/en/contact' : '/contact'}>Contact</a>
         <a href={ALL_PATHS.privacy[lang]} aria-current={page === 'privacy' ? 'page' : undefined}>{t.privacy}</a>
         <a href={ALL_PATHS.legal[lang]} aria-current={page === 'legal' ? 'page' : undefined}>{t.legal}</a>
         <a href="/">{t.back}</a>

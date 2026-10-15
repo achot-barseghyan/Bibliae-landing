@@ -1,7 +1,16 @@
 ---
 import { Image } from 'astro:assets';
 import icon from '../assets/icone/icon-60.png';
-import { CONTACT_EMAIL } from '../config';
+
+interface Props {
+  lang?: 'fr' | 'en';
+}
+
+const { lang = 'fr' } = Astro.props;
+const t = {
+  fr: { nav: 'Liens légaux', contact: '/contact', privacy: ['/confidentialite', 'Confidentialité'], legal: ['/mentions-legales', 'Mentions légales'] },
+  en: { nav: 'Legal links', contact: '/en/contact', privacy: ['/en/privacy', 'Privacy'], legal: ['/en/legal-notice', 'Legal notice'] },
+}[lang];
 ---
 
 <footer class="footer">
@@ -10,10 +19,10 @@ import { CONTACT_EMAIL } from '../config';
       <Image src={icon} alt="" width={26} height={26} densities={[1, 2]} loading="lazy" />
       <span>Bibliae</span>
     </div>
-    <nav class="links" aria-label="Liens légaux">
-      <a href={`mailto:${CONTACT_EMAIL}`}>Contact</a>
-      <a href="/confidentialite">Confidentialité</a>
-      <a href="/mentions-legales">Mentions légales</a>
+    <nav class="links" aria-label={t.nav}>
+      <a href={t.contact}>Contact</a>
+      <a href={t.privacy[0]}>{t.privacy[1]}</a>
+      <a href={t.legal[0]}>{t.legal[1]}</a>
       <span class="copy">© 2026 Bibliae</span>
     </nav>
   </div>

@@ -41,6 +41,7 @@ Nous ne collectons que ce qui est nécessaire au fonctionnement des fonctionnali
 | Données techniques (adresse IP, modèle d'appareil, version de l'app) | Sécurité et bon fonctionnement du service | Journaux de notre hébergeur et des services appelés | 30 jours chez notre hébergeur |
 | Jeton de notification (si vous les activez) | Vous envoyer le saint du jour ou un rappel de prière | Service de notifications Apple / Google | Jusqu'à désactivation |
 | Rapports de plantage anonymes (si un outil est utilisé) | Corriger les erreurs | Nom de l'outil | 90 jours |
+| Formulaire de contact du site (nom, courriel, message) | Vous répondre | Transmis par Resend à notre boîte de réception | Le temps de traiter votre demande, 3 ans au plus |
 
 ## 3. Ce que nous ne faisons pas
 
@@ -64,6 +65,7 @@ Chaque autorisation est demandée **au moment où vous utilisez la fonctionnalit
 Nous faisons appel à quelques prestataires, uniquement pour faire fonctionner le service. Ils n'ont pas le droit d'utiliser vos données pour leur propre compte.
 
 - **Hébergement de notre serveur** : Vercel Inc. (États-Unis), certifiée au Data Privacy Framework UE–États-Unis.
+- **Envoi des messages du formulaire de contact** : Resend (États-Unis). Seuls votre nom, votre courriel et votre message lui sont transmis, pour nous les acheminer.
 - **Textes liturgiques** : AELF (api.aelf.org) et CatéGPT (categpt.chat). Seule la date demandée leur est transmise.
 - **Paroisses** : open-church.io. **Adresses et géolocalisation** : Base Adresse Nationale (api-adresse.data.gouv.fr, service de l'État français). Seuls le texte recherché ou la position, au moment de la recherche, leur sont transmis, jamais votre identité.
 - **Notifications** : Apple Push Notification service et Firebase Cloud Messaging (Google), si vous activez les notifications.
