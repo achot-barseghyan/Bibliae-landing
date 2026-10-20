@@ -3,7 +3,10 @@ import { Image } from 'astro:assets';
 import StoreButtons from './StoreButtons.astro';
 import icon from '../assets/icone/icon-180.png';
 import ModeText from './ModeText.astro';
-import { RELEASE_LABEL } from '../config';
+import { IOS, ANDROID } from '../config';
+
+// Une seule plateforme sortie : on ne promet pas l'autre comme disponible
+const platforms = IOS.live && ANDROID.live ? 'sur iPhone et Android.' : IOS.live ? 'sur iPhone. La version Android arrive bientôt.' : 'sur Android. La version iPhone arrive bientôt.';
 ---
 
 <section id="telecharger" class="final" aria-labelledby="cta-title">
@@ -21,13 +24,13 @@ import { RELEASE_LABEL } from '../config';
     <h2 id="cta-title" data-reveal data-delay="150">
       <ModeText>
         <Fragment slot="live">Ouvrez la Parole, <em>chaque jour.</em></Fragment>
-        <Fragment slot="soon">Bibliae arrive <em>{RELEASE_LABEL}.</em></Fragment>
+        <Fragment slot="soon">Bibliae arrive <em>le {IOS.label}.</em></Fragment>
       </ModeText>
     </h2>
     <p class="text" data-reveal data-delay="280">
       <ModeText>
-        <Fragment slot="live">Bibliae, l'application Bible catholique, est gratuite sur iPhone et Android.</Fragment>
-        <Fragment slot="soon">Nous terminons l'application Bible catholique. Elle sera gratuite sur iPhone et Android.</Fragment>
+        <Fragment slot="live">Bibliae, l'application Bible catholique, est gratuite {platforms}</Fragment>
+        <Fragment slot="soon">L'application Bible catholique sera gratuite sur iPhone dès le {IOS.label}. La version Android suivra.</Fragment>
       </ModeText>
     </p>
     <div class="stores-wrap" data-reveal data-delay="420">

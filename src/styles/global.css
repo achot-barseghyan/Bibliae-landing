@@ -1,8 +1,10 @@
 /* Polices auto-hébergées, sous-ensemble latin uniquement (font-display: swap via fontsource) */
+@import '@fontsource/cormorant-garamond/latin-300.css';
 @import '@fontsource/cormorant-garamond/latin-400.css';
 @import '@fontsource/cormorant-garamond/latin-500.css';
 @import '@fontsource/cormorant-garamond/latin-400-italic.css';
 @import '@fontsource/cormorant-garamond/latin-500-italic.css';
+@import '@fontsource/eb-garamond/latin-400.css';
 @import '@fontsource/eb-garamond/latin-400-italic.css';
 @import '@fontsource/inter/latin-400.css';
 @import '@fontsource/inter/latin-500.css';
@@ -20,6 +22,11 @@
   --gold: #b5892e;
   --gold-light: #e2be6e;
   --cream-70: rgba(247, 241, 227, 0.74);
+  /* Section liturgie (nuit) */
+  --night: #0f1526;
+  --night-cream: #f4eddc;
+  --night-gold: #f0d58e;
+  --olive: #5e6a3a;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
   --serif: 'Cormorant Garamond', serif;
   --serif-text: 'EB Garamond', serif;

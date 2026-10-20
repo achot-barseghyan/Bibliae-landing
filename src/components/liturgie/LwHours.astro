@@ -1,0 +1,486 @@
+---
+// Liturgie des heures : le défilement fait traverser le jour, de l'office des lectures aux complies.
+// Ciel, astre et panneau sont pilotés par page.ts.
+import { HOURS, arcU, arcXY, stars } from '../../scripts/liturgie/hours';
+
+const dots = HOURS.map((h, i) => {
+  const [x, y] = arcXY(arcU(i));
+  return { ...h, x, y };
+});
+const arcPts = Array.from({ length: 61 }, (_, i) => arcXY(i / 60).map((v) => v.toFixed(2)).join(',')).join(' ');
+const sky = stars(77, 70, 100);
+---
+
+<section id="heures" class="hours" aria-labelledby="hours-title" data-hours>
+  <div class="stage" data-stage>
+    <div class="sky" data-sky aria-hidden="true"></div>
+    <div class="stars" data-stars aria-hidden="true">
+      {sky.map((s) => <span style={`left:${s.x.toFixed(1)}%;top:${s.y.toFixed(1)}%;width:${s.z.toFixed(2)}px;height:${s.z.toFixed(2)}px;animation-duration:${s.d.toFixed(2)}s;animation-delay:${s.delay.toFixed(2)}s`} />)}
+    </div>
+    <div class="halo" data-halo aria-hidden="true"></div>
+
+    <svg class="arc" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <polyline points={arcPts} fill="none" stroke="var(--sky-sub)" stroke-width="1" stroke-dasharray="2 6" vector-effect="non-scaling-stroke"></polyline>
+      <polyline data-arc-prog points={arcPts} fill="none" stroke="#F0D58E" stroke-width="2" stroke-linecap="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" vector-effect="non-scaling-stroke"></polyline>
+    </svg>
+
+    <ol class="dots" aria-label="Heures de la journée">
+      {
+        dots.map((h, i) => (
+          <li style={`left:${h.x}%;top:${h.y}%`}>
+            <button type="button" data-hour-dot={i}>
+              <span class="h-name">{h.name}</span>
+              <span class="h-dot" aria-hidden="true" />
+            </button>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="orb" data-orb aria-hidden="true"></div>
+
+    <div class="top">
+      <div class="top-inner">
+        <div>
+          <h2 id="hours-title" class="eyebrow">Liturgie des heures</h2>
+          <p class="hours-sub" data-hours-sub>&nbsp;</p>
+        </div>
+        <div class="top-right">
+          <button class="now" type="button" data-go-now><span class="ping" aria-hidden="true"></span><span>Maintenant · <span data-now-name>Laudes</span></span></button>
+          <span class="counter" data-counter aria-hidden="true">01 / 07</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="ground" data-ground>
+      <div class="horizon" data-horizon aria-hidden="true"></div>
+      <div class="hint" data-hint aria-hidden="true">
+        <span>Faites défiler pour traverser le jour</span>
+        <span class="bob"></span>
+      </div>
+      <div class="panel" data-panel aria-live="polite">
+        <div>
+          <p class="window" data-hr-window>{HOURS[0].window}</p>
+          <p class="hr-name" data-hr-name>{HOURS[0].name}</p>
+          <p class="tag" data-hr-tag>{HOURS[0].tag}</p>
+          <div class="btns">
+            <button class="pray" type="button" data-pray><span>Prier <span data-hr-call>{HOURS[0].call}</span></span><span class="arrow" aria-hidden="true">→</span></button>
+            <button class="full" type="button" data-full>Tout l'office</button>
+          </div>
+        </div>
+        <dl class="parts" data-hr-parts></dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hours {
+    position: relative;
+    height: 560vh;
+    background: var(--night);
+  }
+  .stage {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100svh;
+    overflow: hidden;
+    --sky-ink: #f4eddc;
+    --sky-sub: rgba(244, 237, 220, 0.7);
+  }
+  .sky {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, #070b18 0%, #1c2442 58%);
+  }
+  .stars {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 46%;
+    pointer-events: none;
+  }
+  .stars span {
+    position: absolute;
+    border-radius: 50%;
+    background: #fff6de;
+    box-shadow: 0 0 6px rgba(255, 236, 190, 0.9);
+    animation: twinkle 3s ease-in-out infinite;
+  }
+  .halo {
+    position: absolute;
+    left: 10%;
+    top: 50%;
+    width: 620px;
+    height: 620px;
+    margin: -310px 0 0 -310px;
+    border-radius: 50%;
+    pointer-events: none;
+    background: radial-gradient(circle, rgba(255, 236, 190, 0.35), transparent 60%);
+  }
+  .arc {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    pointer-events: none;
+  }
+
+  .dots {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .dots li {
+    position: absolute;
+    z-index: 2;
+    width: 120px;
+    height: 56px;
+    margin: -42px 0 0 -60px;
+  }
+  .dots button {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    cursor: pointer;
+  }
+  .h-name {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 18px;
+    line-height: 1;
+    color: var(--sky-ink);
+    opacity: 0.72;
+    white-space: nowrap;
+    text-shadow: 0 0 12px rgb(from var(--sky-ink) calc(255 - r) calc(255 - g) calc(255 - b) / 0.35);
+    transition:
+      font-size 0.5s,
+      opacity 0.5s,
+      color 0.4s;
+  }
+  /* L'encre bascule crème ↔ sombre selon le ciel : fondu plutôt que saut */
+  .eyebrow,
+  .hours-sub,
+  .now,
+  .counter {
+    transition:
+      color 0.4s,
+      box-shadow 0.4s;
+  }
+  .h-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--sky-ink);
+    transition: all 0.5s var(--ease);
+  }
+  .dots :global(button.is-on) .h-name {
+    font-size: 26px;
+    font-weight: 500;
+    opacity: 1;
+  }
+  .dots :global(button.is-on) .h-dot {
+    width: 14px;
+    height: 14px;
+  }
+  .dots :global(button.is-now) .h-dot {
+    background: var(--night-gold);
+    box-shadow: 0 0 0 4px rgba(240, 213, 142, 0.3);
+  }
+
+  .orb {
+    position: absolute;
+    left: 10%;
+    top: 50%;
+    z-index: 1;
+    width: 54px;
+    height: 54px;
+    margin: -27px 0 0 -27px;
+    border-radius: 50%;
+    pointer-events: none;
+    background: #fff1c9;
+    box-shadow: 0 0 40px 12px rgba(255, 236, 190, 0.7);
+  }
+
+  .top {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 92px;
+    z-index: 3;
+  }
+  .top-inner {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 var(--gutter);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  /* Barre du haut : encre choisie d'après le haut du ciel (voir page.ts) */
+  .top-inner {
+    --sky-ink: var(--sky-top-ink, #f4eddc);
+    --sky-sub: var(--sky-top-sub, rgba(244, 237, 220, 0.7));
+  }
+  .eyebrow {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--sky-ink);
+  }
+  .hours-sub {
+    margin-top: 8px;
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 18px;
+    color: var(--sky-sub);
+  }
+  .top-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .now {
+    min-height: 40px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 20px;
+    background: none;
+    box-shadow: inset 0 0 0 0.5px var(--sky-sub);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--sky-ink);
+  }
+  .ping {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--night-gold);
+    animation: ping 2.2s ease-out infinite;
+  }
+  .counter {
+    font-family: var(--serif);
+    font-size: 22px;
+    color: var(--sky-ink);
+  }
+
+  .ground {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 46%;
+    bottom: 0;
+    z-index: 3;
+    background: #151b30;
+  }
+  .horizon {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(240, 213, 142, 0.8), transparent);
+  }
+  .hint {
+    position: absolute;
+    left: 50%;
+    top: -56px;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+    transition: opacity 0.5s;
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 16px;
+    color: var(--sky-ink);
+    white-space: nowrap;
+  }
+  .bob {
+    width: 1px;
+    height: 22px;
+    background: var(--sky-ink);
+    animation: bob 1.8s ease-in-out infinite;
+  }
+
+  .panel {
+    max-width: 1320px;
+    height: 100%;
+    margin: 0 auto;
+    padding: clamp(18px, 4vh, 44px) var(--gutter) 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: 18px 56px;
+    align-content: start;
+    overflow: hidden;
+  }
+  .window {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--night-gold);
+  }
+  .hr-name {
+    margin-top: 10px;
+    font-family: var(--serif);
+    font-weight: 300;
+    font-style: italic;
+    font-size: clamp(46px, min(7.4vw, 11vh), 118px);
+    line-height: 0.9;
+    color: var(--night-cream);
+  }
+  .tag {
+    margin-top: 12px;
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 20px;
+    line-height: 1.4;
+    color: rgba(244, 237, 220, 0.78);
+    text-wrap: pretty;
+  }
+  .btns {
+    margin-top: 22px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .pray,
+  .full {
+    min-height: 50px;
+    border: 0;
+    border-radius: 25px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .pray {
+    padding: 0 24px;
+    background: var(--night-gold);
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .pray:hover {
+    background: #f4dfa4;
+  }
+  .arrow {
+    font-family: var(--serif);
+    font-size: 20px;
+    letter-spacing: 0;
+    color: var(--oxblood);
+  }
+  .full {
+    padding: 0 20px;
+    background: transparent;
+    box-shadow: inset 0 0 0 0.5px rgba(244, 237, 220, 0.45);
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    color: var(--night-cream);
+  }
+  .full:hover {
+    color: var(--night-gold);
+  }
+
+  .parts {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-self: start;
+  }
+  .parts :global(div) {
+    display: grid;
+    grid-template-columns: 130px minmax(0, 1fr);
+    gap: 14px;
+    align-items: baseline;
+    padding: min(13px, 1.4vh) 0;
+    border-bottom: 0.5px solid rgba(244, 237, 220, 0.18);
+  }
+  .parts :global(dt) {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(244, 237, 220, 0.62);
+  }
+  .parts :global(dd) {
+    margin: 0;
+    font-family: var(--serif);
+    font-size: clamp(19px, 2.6vh, 24px);
+    line-height: 1.1;
+    color: var(--night-cream);
+  }
+
+  @keyframes twinkle {
+    0%,
+    100% {
+      opacity: 0.15;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+  @keyframes ping {
+    0% {
+      box-shadow: 0 0 0 0 rgba(240, 213, 142, 0.7);
+    }
+    100% {
+      box-shadow: 0 0 0 14px rgba(240, 213, 142, 0);
+    }
+  }
+  @keyframes bob {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(6px);
+    }
+  }
+
+  /* Petit écran : noms d'heures plus courts sur l'arc, panneau sans liste */
+  @media (max-width: 719px) {
+    .dots li {
+      width: 70px;
+      margin-left: -35px;
+    }
+    .h-name {
+      font-size: 0;
+    }
+    .dots :global(button.is-on) .h-name {
+      font-size: 20px;
+    }
+    .parts {
+      display: none;
+    }
+    .counter {
+      display: none;
+    }
+  }
+</style>

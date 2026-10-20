@@ -1,7 +1,7 @@
 ---
 // ⚠️ En production, remplacer ces dessins par les badges officiels Apple et Google
 // (obligatoires selon leurs règles de marque).
-import { PRELAUNCH, APP_STORE_URL, PLAY_STORE_URL } from '../config';
+import { IOS, ANDROID, APP_STORE_URL, PLAY_STORE_URL } from '../config';
 
 interface Props {
   /** hero : 58 px, Google Play en contour · cta : 62 px, Google Play sur fond sombre */
@@ -16,27 +16,27 @@ const stores = [
   {
     key: 'apple',
     href: APP_STORE_URL,
-    top: { live: 'Télécharger dans', soon: 'Bientôt dans' },
+    live: IOS.live,
+    top: { live: 'Télécharger dans', soon: `Le ${IOS.label} dans` },
     name: "l'App Store",
   },
   {
     key: 'play',
     href: PLAY_STORE_URL,
+    live: ANDROID.live,
     top: { live: 'Disponible sur', soon: 'Bientôt sur' },
     name: 'Google Play',
   },
 ];
-
-const mode = PRELAUNCH ? 'soon' : 'live';
-const soon = PRELAUNCH;
 ---
 
 <div class:list={['stores', variant]}>
   {
     stores.map((s, i) => {
+      const soon = !s.live;
       const Tag = soon ? 'span' : 'a';
       const attrs = soon
-        ? {} // pré-lancement : pas de lien
+        ? {} // pas encore sorti sur ce store : pas de lien
         : { href: s.href, rel: 'noopener' };
       return (
         <Tag class:list={['store', s.key, { soon }]} {...attrs}>
@@ -53,7 +53,7 @@ const soon = PRELAUNCH;
             </svg>
           )}
           <span class="txt">
-            <span class="top">{s.top[mode]}</span>
+            <span class="top">{s.top[soon ? 'soon' : 'live']}</span>
             <span class="name">{s.name}</span>
           </span>
           <span class="shine" data-shine style={`--shine-delay:${shine[i]}ms`} aria-hidden="true" />

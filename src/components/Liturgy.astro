@@ -1,0 +1,387 @@
+---
+// Liturgie du jour. Le HTML ne contient que des textes valables tous les jours ;
+// la date, l'heure et l'Évangile sont remplis dans le navigateur (API AELF), voir le script plus bas.
+import { LITURGY_URL } from '../config';
+
+const stars = Array.from({ length: 22 }, (_, i) => ({
+  x: (i * 37) % 100,
+  y: 40 + ((i * 53) % 60),
+  s: 1.5 + (i % 3),
+}));
+---
+
+<section id="liturgie" class="liturgy" aria-labelledby="liturgy-title">
+  <div class="sky" aria-hidden="true">
+    {stars.map((p) => <span style={`left:${p.x}%;top:${p.y}%;width:${p.s}px;height:${p.s}px`} />)}
+  </div>
+
+  <div class="grid container">
+    <div class="copy">
+      <p class="badge" data-reveal>
+        <span class="dot" data-lit-color aria-hidden="true"></span>
+        <span>Aujourd'hui<span data-lit-date></span></span>
+      </p>
+      <h2 id="liturgy-title" data-reveal data-delay="120">
+        La liturgie du jour, <em>ouverte à tous.</em>
+      </h2>
+      <p class="lead" data-reveal data-delay="240">
+        Les lectures de la messe et la liturgie des heures, chaque jour, directement dans votre navigateur. En forme
+        ordinaire ou traditionnelle.
+      </p>
+      <div class="actions" data-reveal data-delay="360">
+        <a class="open" href={LITURGY_URL}>
+          Ouvrir la liturgie
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none" aria-hidden="true">
+            <path d="M1 6h13M9.5 1.5L14 6l-4.5 4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </a>
+        <span class="free">Gratuit · sans compte</span>
+      </div>
+    </div>
+
+    <div class="cards">
+      <a class="card gospel" href={`${LITURGY_URL}#lecture`} data-reveal data-delay="200">
+        <span class="cross" aria-hidden="true">✝</span>
+        <span class="head">
+          <span class="label">Évangile du jour</span>
+          <span class="ref" data-lit-ref></span>
+        </span>
+        <span class="quote" data-lit-quote>La Parole de Dieu proclamée aujourd'hui à la messe.</span>
+        <span class="more">Lire la messe <span class="arrow" aria-hidden="true">→</span></span>
+      </a>
+      <div class="small">
+        <a class="card mini" href={`${LITURGY_URL}#heures`} data-reveal data-delay="320">
+          <span class="label"><span class="ping" aria-hidden="true"></span>À cette heure</span>
+          <span class="title" data-lit-hour>L'office</span>
+          <span class="sub">Liturgie des heures →</span>
+        </a>
+        <a class="card mini" href={`${LITURGY_URL}#jour`} data-reveal data-delay="420">
+          <span class="label">Temps liturgique</span>
+          <span class="title" data-lit-season>Le calendrier</span>
+          <span class="sub" data-lit-week>Fêtes et couleurs du jour →</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const TZ = 'Europe/Paris';
+  const now = new Date();
+  const $ = (s: string) => document.querySelectorAll<HTMLElement>(s);
+  const set = (s: string, text: string) => $(s).forEach((el) => (el.textContent = text));
+
+  set('[data-lit-day]', new Intl.DateTimeFormat('fr-FR', { day: 'numeric', timeZone: TZ }).format(now));
+  set(
+    '[data-lit-date]',
+    ' · ' +
+      new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: TZ }).format(now),
+  );
+
+  const h = now.getHours();
+  set('[data-lit-hour]', h < 6 ? 'Matines' : h < 9 ? 'Laudes' : h < 12 ? 'Tierce' : h < 14 ? 'Sexte' : h < 17 ? 'None' : h < 21 ? 'Vêpres' : 'Complies');
+
+  const COLORS: Record<string, string> = {
+    vert: '#5E6A3A',
+    violet: '#5B3F7A',
+    blanc: '#F4EDDC',
+    rouge: '#A8282E',
+    rose: '#D79BAA',
+    noir: '#23201A',
+  };
+  const SEASONS: Record<string, string> = {
+    ordinaire: 'Ordinaire',
+    avent: 'Avent',
+    noel: 'Noël',
+    careme: 'Carême',
+    pascal: 'Pascal',
+  };
+  const roman = (n: number) =>
+    [['C', 100], ['XC', 90], ['L', 50], ['XL', 40], ['X', 10], ['IX', 9], ['V', 5], ['IV', 4], ['I', 1]].reduce<string>((acc, [r, v]) => {
+      while (n >= (v as number)) {
+        acc += r;
+        n -= v as number;
+      }
+      return acc;
+    }, '');
+
+  type Aelf = {
+    informations?: { couleur?: string; temps_liturgique?: string; semaine?: string };
+    messes?: { lectures?: { type: string; ref?: string; titre?: string }[] }[];
+  };
+
+  const iso = new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(now);
+  fetch(`https://api.aelf.org/v1/messes/${iso}/france`)
+    .then((r) => (r.ok ? (r.json() as Promise<Aelf>) : Promise.reject()))
+    .then(({ informations: info = {}, messes = [] }) => {
+      const color = info.couleur ?? '';
+      $('[data-lit-color]').forEach((el) => {
+        if (!COLORS[color]) return;
+        el.style.background = COLORS[color];
+        // Fond clair (blanc, rose) : chiffre du jour en encre
+        if (color === 'blanc' || color === 'rose') el.style.color = '#23201A';
+      });
+
+      const season = info.temps_liturgique ?? '';
+      if (season) set('[data-lit-season]', SEASONS[season] ?? season.charAt(0).toUpperCase() + season.slice(1));
+      const week = Number.parseInt(info.semaine ?? '', 10);
+      if (week && COLORS[color]) $('[data-lit-week]').forEach((el) => (el.innerHTML = `${roman(week)}<sup>e</sup> semaine · ${color} →`));
+
+      const gospel = messes[0]?.lectures?.find((l) => l.type === 'evangile');
+      if (gospel?.ref) set('[data-lit-ref]', gospel.ref);
+      if (gospel?.titre) set('[data-lit-quote]', gospel.titre.replace(/\s+/g, ' ').trim());
+    })
+    .catch(() => {
+      // Pas de réseau ou API indisponible : les textes génériques restent affichés
+    });
+</script>
+
+<style>
+  .liturgy {
+    position: relative;
+    background: var(--night);
+    padding: 120px var(--gutter);
+    overflow: hidden;
+  }
+  .liturgy::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(60% 70% at 85% 30%, rgba(62, 90, 46, 0.45), transparent 70%),
+      radial-gradient(50% 60% at 10% 100%, rgba(181, 137, 46, 0.14), transparent 70%);
+    pointer-events: none;
+  }
+  .sky span {
+    position: absolute;
+    border-radius: 50%;
+    background: #fff6de;
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr));
+    gap: 56px 72px;
+    align-items: center;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 34px;
+    padding: 0 16px;
+    border-radius: 17px;
+    box-shadow: inset 0 0 0 0.5px rgba(240, 213, 142, 0.5);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--night-gold);
+  }
+  .dot {
+    flex: none;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--olive);
+    box-shadow: 0 0 0 2px rgba(244, 237, 220, 0.25);
+  }
+
+  h2 {
+    margin-top: 24px;
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: clamp(44px, 5.6vw, 78px);
+    line-height: 0.98;
+    color: var(--night-cream);
+    text-wrap: balance;
+  }
+  h2 em {
+    color: var(--night-gold);
+  }
+  .lead {
+    margin-top: 22px;
+    max-width: 480px;
+    font-size: 17px;
+    line-height: 1.6;
+    color: rgba(244, 237, 220, 0.75);
+    text-wrap: pretty;
+  }
+
+  .actions {
+    margin-top: 34px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+  }
+  .open {
+    min-height: 56px;
+    padding: 0 28px;
+    border-radius: 28px 28px 8px 8px;
+    background: var(--night-gold);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--night);
+    transition:
+      transform 0.3s var(--ease),
+      box-shadow 0.3s;
+  }
+  .open:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 34px rgba(240, 213, 142, 0.3);
+    color: var(--night);
+  }
+  .open svg {
+    flex: none;
+  }
+  .free {
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 16px;
+    color: rgba(244, 237, 220, 0.6);
+  }
+
+  .cards {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .small {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+    gap: 14px;
+  }
+  .card {
+    display: flex;
+    flex-direction: column;
+    color: var(--night-cream);
+    transition:
+      transform 0.4s var(--ease),
+      box-shadow 0.4s,
+      background 0.4s;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    color: var(--night-cream);
+  }
+  .label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .gospel {
+    position: relative;
+    overflow: hidden;
+    padding: 30px 32px;
+    border-radius: 24px;
+    background: radial-gradient(90% 120% at 100% 0%, #3a1a1e 0%, #1a1714 70%);
+    box-shadow: inset 0 0 0 0.5px rgba(240, 213, 142, 0.3);
+    gap: 12px;
+  }
+  .gospel:hover {
+    box-shadow:
+      inset 0 0 0 1px rgba(240, 213, 142, 0.7),
+      0 30px 50px -30px rgba(0, 0, 0, 0.8);
+  }
+  .cross {
+    position: absolute;
+    right: -6px;
+    top: -40px;
+    font-family: var(--serif);
+    font-size: 180px;
+    line-height: 1;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(240, 213, 142, 0.18);
+    pointer-events: none;
+  }
+  .head {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .gospel .label {
+    color: var(--night-gold);
+  }
+  .ref {
+    font-family: var(--serif-text);
+    font-size: 16px;
+    color: rgba(244, 237, 220, 0.7);
+  }
+  .quote {
+    position: relative;
+    font-family: var(--serif);
+    font-size: clamp(24px, 2.4vw, 30px);
+    line-height: 1.25;
+    text-wrap: pretty;
+  }
+  .more {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--night-gold);
+  }
+  .arrow {
+    font-family: var(--serif);
+    font-size: 19px;
+    letter-spacing: 0;
+  }
+
+  .mini {
+    padding: 24px 26px;
+    border-radius: 22px;
+    background: rgba(244, 237, 220, 0.05);
+    box-shadow: inset 0 0 0 0.5px rgba(244, 237, 220, 0.25);
+    gap: 8px;
+  }
+  .mini:hover {
+    background: rgba(244, 237, 220, 0.1);
+  }
+  .mini .label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(244, 237, 220, 0.65);
+  }
+  .ping {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--night-gold);
+    box-shadow: 0 0 0 3px rgba(240, 213, 142, 0.25);
+  }
+  .title {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 34px;
+    line-height: 1;
+  }
+  .sub {
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 15px;
+    color: rgba(244, 237, 220, 0.65);
+  }
+  .sub :global(sup) {
+    font-size: 0.7em;
+  }
+</style>

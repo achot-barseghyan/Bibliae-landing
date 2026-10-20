@@ -2,9 +2,9 @@
 import { Image } from 'astro:assets';
 import icon from '../assets/icone/icon-180.png';
 import ModeText from './ModeText.astro';
-import { RELEASE_LABEL } from '../config';
+import { IOS, LITURGY_URL } from '../config';
 
-const release = RELEASE_LABEL.charAt(0).toUpperCase() + RELEASE_LABEL.slice(1);
+const release = IOS.label.charAt(0).toUpperCase() + IOS.label.slice(1);
 ---
 
 <div class="progress" data-progress aria-hidden="true"></div>
@@ -16,6 +16,7 @@ const release = RELEASE_LABEL.charAt(0).toUpperCase() + RELEASE_LABEL.slice(1);
       <span>Bibliae</span>
     </a>
     <div class="links">
+      <a class="liturgy" href={LITURGY_URL}><span class="dot" aria-hidden="true"></span>Liturgie du jour</a>
       <a class="link" href="/#fonctions">Fonctionnalités</a>
       <a class="cta" href="/#telecharger"><ModeText><Fragment slot="live">Télécharger</Fragment><Fragment slot="soon">{release}</Fragment></ModeText></a>
     </div>
@@ -93,6 +94,24 @@ const release = RELEASE_LABEL.charAt(0).toUpperCase() + RELEASE_LABEL.slice(1);
   .link:hover {
     color: var(--paper-light);
   }
+  .liturgy {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gold-light);
+  }
+  .liturgy:hover {
+    color: var(--paper-light);
+  }
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #7e8b52;
+    box-shadow: 0 0 0 3px rgba(126, 139, 82, 0.3);
+  }
   .cta {
     min-height: 40px;
     padding: 0 18px;
@@ -112,6 +131,12 @@ const release = RELEASE_LABEL.charAt(0).toUpperCase() + RELEASE_LABEL.slice(1);
 
   @media (max-width: 899px) {
     .link {
+      display: none;
+    }
+  }
+  /* Le lien du hero suffit sur petit écran */
+  @media (max-width: 479px) {
+    .liturgy {
       display: none;
     }
   }

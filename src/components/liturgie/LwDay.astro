@@ -1,0 +1,474 @@
+---
+// Aujourd'hui : intitulé du jour, roue de l'année liturgique, semaine. Rempli par page.ts.
+import { stars } from '../../scripts/liturgie/hours';
+
+const sky = stars(31, 60, 90);
+---
+
+<section id="jour" class="day" aria-labelledby="day-title" data-day>
+  <div class="tint" data-day-tint aria-hidden="true"></div>
+  <div class="stars" aria-hidden="true">
+    {sky.map((s) => <span style={`left:${s.x.toFixed(1)}%;top:${s.y.toFixed(1)}%;width:${s.z.toFixed(2)}px;height:${s.z.toFixed(2)}px;animation-duration:${s.d.toFixed(2)}s;animation-delay:${s.delay.toFixed(2)}s`} />)}
+  </div>
+  <div class="light" data-day-light aria-hidden="true"></div>
+
+  <div class="grid">
+    <div class="id" data-day-id>
+      <p class="badge" data-in="1">
+        <span class="dot" data-day-color aria-hidden="true"></span>
+        <span data-day-date>Aujourd'hui</span>
+      </p>
+      <h1 id="day-title">
+        <span class="mask"><span class="l" data-line="0"><span data-day-l1>La liturgie</span><span class="sup" data-day-sup></span></span></span>
+        <span class="mask"><span class="l accent" data-line="1" data-day-l2>du jour</span></span>
+      </h1>
+      <p class="rank" data-in="2" data-day-rank>Lectures de la messe et liturgie des heures</p>
+      <p class="memorial" data-in="2" data-day-memorial hidden></p>
+      <noscript>
+        <p class="noscript">
+          Les textes du jour sont chargés depuis l'AELF : activez JavaScript, ou lisez-les sur <a href="https://www.aelf.org">aelf.org</a>.
+        </p>
+      </noscript>
+      <div class="actions" data-in="4">
+        <a class="primary" href="#lecture">
+          Lecture du jour
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none" aria-hidden="true">
+            <path d="M1 6h13M9.5 1.5L14 6l-4.5 4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+          <span class="shine" data-shine aria-hidden="true"></span>
+        </a>
+        <button class="now" type="button" data-go-now>
+          <span class="ping" aria-hidden="true"></span><span>À cette heure, <span data-now-call>les laudes</span></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="wheel-wrap">
+      <div class="wheel" data-wheel-box data-in="1" aria-hidden="true">
+        <div class="breath"></div>
+        <svg viewBox="0 0 280 280" data-wheel>
+          <circle cx="140" cy="140" r="132" fill="none" stroke="rgba(244,237,220,0.12)" stroke-width="0.4" stroke-dasharray="1 3"></circle>
+          <circle cx="140" cy="140" r="96" fill="none" stroke="rgba(244,237,220,0.12)" stroke-width="0.4"></circle>
+          <g data-arcs></g>
+          <g class="marker" data-marker>
+            <line x1="140" y1="2" x2="140" y2="40" stroke="#F0D58E" stroke-width="0.8"></line>
+            <circle cx="140" cy="27" r="5.5" fill="#F0D58E"></circle>
+            <circle cx="140" cy="27" r="10" fill="none" stroke="rgba(240,213,142,0.45)" stroke-width="0.6"></circle>
+          </g>
+        </svg>
+        <div data-wheel-labels></div>
+        <div class="center">
+          <div class="num" data-day-num>&nbsp;</div>
+          <div class="month" data-day-month></div>
+          <div class="year" data-day-year></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="week-wrap" data-in="5">
+    <div class="week" role="group" aria-label="Jours de la semaine" data-week></div>
+  </div>
+</section>
+
+<style>
+  .day {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100svh;
+    padding: 130px var(--gutter) 70px;
+    background: var(--night);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .tint {
+    position: absolute;
+    inset: 0;
+    background-color: #3e5a2e;
+    -webkit-mask: radial-gradient(70% 60% at 70% 40%, #000 0%, rgba(0, 0, 0, 0.5) 45%, transparent 80%);
+    mask: radial-gradient(70% 60% at 70% 40%, #000 0%, rgba(0, 0, 0, 0.5) 45%, transparent 80%);
+    opacity: 0.7;
+    transition: background-color 1200ms;
+  }
+  .stars,
+  .light {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .stars span {
+    position: absolute;
+    border-radius: 50%;
+    background: #fff6de;
+    box-shadow: 0 0 6px rgba(255, 236, 190, 0.9);
+    animation: twinkle 3s ease-in-out infinite;
+  }
+  .light {
+    transition: opacity 0.6s;
+  }
+
+  .grid {
+    position: relative;
+    max-width: 1320px;
+    width: 100%;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 480px), 1fr));
+    gap: 60px;
+    align-items: center;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 34px;
+    padding: 0 16px;
+    border-radius: 17px;
+    box-shadow: inset 0 0 0 0.5px rgba(240, 213, 142, 0.5);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--night-gold);
+  }
+  .dot {
+    flex: none;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--olive);
+    box-shadow: 0 0 0 2px rgba(244, 237, 220, 0.25);
+    transition: background 0.6s;
+  }
+
+  h1 {
+    margin-top: 26px;
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: clamp(46px, 6.2vw, 96px);
+    line-height: 0.98;
+    letter-spacing: -0.015em;
+    color: var(--night-cream);
+    text-wrap: balance;
+  }
+  /* Fêtes au nom long (« Dédicace des églises consacrées… ») */
+  h1:global(.long) {
+    font-size: clamp(38px, 4.4vw, 66px);
+    line-height: 1.02;
+  }
+  .mask {
+    display: block;
+    overflow: hidden;
+    padding-bottom: 0.08em;
+  }
+  .l {
+    display: block;
+  }
+  .sup {
+    font-size: 0.55em;
+    vertical-align: 0.7em;
+  }
+  .accent {
+    font-style: italic;
+    color: var(--night-gold);
+  }
+  .accent:empty {
+    display: none;
+  }
+
+  .rank {
+    margin-top: 22px;
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 22px;
+    color: rgba(244, 237, 220, 0.78);
+  }
+  .memorial {
+    margin-top: 10px;
+    max-width: 520px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: rgba(244, 237, 220, 0.62);
+    text-wrap: pretty;
+  }
+  .noscript {
+    margin-top: 18px;
+    max-width: 480px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: rgba(244, 237, 220, 0.75);
+  }
+
+  .actions {
+    margin-top: 34px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+  }
+  .primary {
+    position: relative;
+    overflow: hidden;
+    min-height: 56px;
+    padding: 0 28px;
+    border-radius: 28px 28px 8px 8px;
+    background: var(--night-gold);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--night);
+    transition:
+      transform 0.3s var(--ease),
+      box-shadow 0.3s;
+  }
+  .primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 34px rgba(240, 213, 142, 0.3);
+    color: var(--night);
+  }
+  .shine {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 40%;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+    transform: translateX(-150%);
+    pointer-events: none;
+    --shine-delay: 2200ms;
+  }
+  .now {
+    min-height: 56px;
+    padding: 0 4px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 0;
+    border-bottom: 0.5px solid rgba(240, 213, 142, 0.5);
+    background: none;
+    cursor: pointer;
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 19px;
+    color: var(--night-cream);
+  }
+  .ping {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--night-gold);
+    animation: ping 2.2s ease-out infinite;
+  }
+
+  .wheel-wrap {
+    display: flex;
+    justify-content: center;
+  }
+  .wheel {
+    position: relative;
+    width: min(100%, 470px);
+    aspect-ratio: 1;
+  }
+  .breath {
+    position: absolute;
+    inset: -8%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(240, 213, 142, 0.2), transparent 62%);
+    animation: breath 7s ease-in-out infinite;
+  }
+  .wheel svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    overflow: visible;
+    transform-box: border-box;
+    transform-origin: 50% 50%;
+  }
+  .marker {
+    transform-origin: 140px 140px;
+    transition: transform 1400ms var(--ease);
+  }
+  .wheel :global(.season-label) {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: rgba(244, 237, 220, 0.62);
+    pointer-events: none;
+  }
+  .center {
+    position: absolute;
+    inset: 22%;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .num {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: clamp(90px, 11vw, 150px);
+    line-height: 0.85;
+    color: var(--night-cream);
+  }
+  .month {
+    /* Chiffres elzéviriens : 3, 4, 5, 7, 9 descendent sous la ligne */
+    margin-top: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: #d9b66a;
+  }
+  .year {
+    margin-top: 8px;
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 16px;
+    color: rgba(244, 237, 220, 0.62);
+  }
+
+  .week-wrap {
+    position: relative;
+    max-width: 1320px;
+    width: 100%;
+    margin: 56px auto 0;
+  }
+  .week {
+    max-width: 780px;
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 8px;
+    align-items: end;
+    height: 124px;
+  }
+  .week :global(button) {
+    position: relative;
+    height: 92px;
+    border: 0;
+    border-radius: 999px 999px 10px 10px;
+    background: rgba(244, 237, 220, 0.07);
+    box-shadow: inset 0 0 0 0.5px rgba(244, 237, 220, 0.22);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 7px;
+    padding: 0 0 14px;
+    cursor: pointer;
+    color: var(--night-cream);
+    transition:
+      height 650ms var(--ease),
+      background 0.5s,
+      box-shadow 0.5s,
+      transform 0.3s;
+  }
+  .week :global(button:hover) {
+    transform: translateY(-4px);
+  }
+  .week :global(button[aria-pressed='true']) {
+    height: 124px;
+    background: var(--night-cream);
+    box-shadow:
+      0 18px 30px -16px rgba(0, 0, 0, 0.7),
+      inset 0 0 0 1px var(--gold);
+    color: var(--oxblood);
+  }
+  .week :global(.wd-dot) {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #7e8b52;
+  }
+  .week :global(.wd-dot.feast) {
+    background: transparent;
+    box-shadow: inset 0 0 0 1.4px var(--night-gold);
+  }
+  .week :global(button[aria-pressed='true'] .wd-dot.feast) {
+    box-shadow: inset 0 0 0 1.4px var(--gold);
+  }
+  .week :global(.wd-n) {
+    font-family: var(--serif);
+    font-size: 24px;
+    line-height: 1;
+  }
+  .week :global(button[aria-pressed='true'] .wd-n) {
+    font-weight: 600;
+  }
+  .week :global(.wd-d) {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(244, 237, 220, 0.62);
+  }
+  .week :global(button[aria-pressed='true'] .wd-d) {
+    color: var(--oxblood);
+  }
+
+  @keyframes twinkle {
+    0%,
+    100% {
+      opacity: 0.15;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+  @keyframes breath {
+    0%,
+    100% {
+      opacity: 0.55;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.08);
+    }
+  }
+  @keyframes ping {
+    0% {
+      box-shadow: 0 0 0 0 rgba(240, 213, 142, 0.7);
+    }
+    100% {
+      box-shadow: 0 0 0 14px rgba(240, 213, 142, 0);
+    }
+  }
+
+  /* Les libellés des temps débordent de l'écran : la roue seule suffit */
+  @media (max-width: 599px) {
+    .wheel {
+      width: min(100% - 24px, 470px);
+    }
+    .wheel :global(.season-label) {
+      display: none;
+    }
+  }
+  @media (max-width: 519px) {
+    .week {
+      gap: 5px;
+      height: 108px;
+    }
+    .week :global(button) {
+      height: 80px;
+    }
+    .week :global(button[aria-pressed='true']) {
+      height: 108px;
+    }
+    .week :global(.wd-n) {
+      font-size: 20px;
+    }
+  }
+</style>

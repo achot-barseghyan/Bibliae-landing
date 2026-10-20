@@ -2,7 +2,7 @@
 import '../styles/global.css';
 import cormorant400 from '@fontsource/cormorant-garamond/files/cormorant-garamond-latin-400-normal.woff2?url';
 import inter400 from '@fontsource/inter/files/inter-latin-400-normal.woff2?url';
-import { PRELAUNCH, APP_STORE_ID, SITE_URL } from '../config';
+import { IOS, APP_STORE_ID, SITE_URL } from '../config';
 
 interface Props {
   title?: string;
@@ -90,7 +90,7 @@ const jsonLd = appSchema
     <meta property="og:image:alt" content="Bibliae — La Parole, la prière, l'Église." />
     <meta name="twitter:card" content="summary_large_image" />
 
-    {!PRELAUNCH && <meta name="apple-itunes-app" content={`app-id=${APP_STORE_ID}`} />}
+    {IOS.live && <meta name="apple-itunes-app" content={`app-id=${APP_STORE_ID}`} />}
 
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" sizes="32x32" href="/icon-32.png" />

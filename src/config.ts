@@ -1,8 +1,15 @@
-/** true = « Bientôt disponible · fin 2026 ». Passer à false le jour de la sortie, puis rebuilder. */
-export const PRELAUNCH = true;
-export const RELEASE_LABEL = 'fin 2026';
+/**
+ * Sorties par plateforme. Le jour d'une sortie : passer `live` à true, renseigner l'identifiant du store, puis rebuilder.
+ * `label` est la date affichée tant que la version n'est pas sortie.
+ */
+export const IOS = { live: false, label: '22 octobre' };
+export const ANDROID = { live: false, label: 'prochainement' };
+/** true tant qu'aucune version n'est disponible (« Sur iPhone le 22 octobre »). */
+export const PRELAUNCH = !IOS.live && !ANDROID.live;
 export const APP_STORE_ID = 'XXXXXXXXX';
 export const APP_STORE_URL = `https://apps.apple.com/app/id${APP_STORE_ID}`;
 export const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=XXX';
 export const SITE_URL = 'https://bibliae.app';
 export const CONTACT_EMAIL = 'contact@bibliae.app';
+/** Page web de la liturgie du jour (lectures de la messe, liturgie des heures). Ancres : #lecture, #heures, #jour. */
+export const LITURGY_URL = '/liturgie';

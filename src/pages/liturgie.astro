@@ -1,0 +1,38 @@
+---
+import '@fontsource/cormorant-garamond/latin-300-italic.css';
+import '@fontsource/cormorant-garamond/latin-600.css';
+import Base from '../layouts/Base.astro';
+import LwNav from '../components/liturgie/LwNav.astro';
+import LwDay from '../components/liturgie/LwDay.astro';
+import LwMass from '../components/liturgie/LwMass.astro';
+import LwHours from '../components/liturgie/LwHours.astro';
+import LwReaders from '../components/liturgie/LwReaders.astro';
+import LwFooter from '../components/liturgie/LwFooter.astro';
+---
+
+<Base
+  title="Liturgie du jour — lectures de la messe et liturgie des heures · Bibliae"
+  description="Les lectures de la messe et la liturgie des heures de chaque jour, des laudes aux complies, selon le calendrier liturgique. Textes officiels de l'AELF, gratuits et sans compte."
+  ogTitle="La liturgie du jour, ouverte à tous"
+  ogDescription="Les lectures de la messe et la liturgie des heures de chaque jour, dans votre navigateur."
+>
+  <LwNav />
+  <main id="contenu">
+    <LwDay />
+    <LwMass />
+    <LwHours />
+  </main>
+  <LwFooter />
+  <LwReaders />
+</Base>
+
+<style is:global>
+  /* Fond de page nuit, comme la maquette */
+  body:has(#jour) {
+    background: var(--night);
+  }
+</style>
+
+<script>
+  import '../scripts/liturgie/page';
+</script>

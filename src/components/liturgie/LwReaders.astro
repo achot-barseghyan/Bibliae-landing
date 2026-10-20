@@ -1,0 +1,995 @@
+---
+// Liseuses plein écran : la messe (texte intégral) et l'office (pas à pas ou texte intégral). Remplies par page.ts.
+import { HOURS, stars } from '../../scripts/liturgie/hours';
+
+const sky = stars(77, 70, 100);
+const fsButtons = (dark: boolean) => [
+  { dir: 'down', label: 'Réduire le texte', size: dark ? 16 : 17 },
+  { dir: 'up', label: 'Agrandir le texte', size: dark ? 23 : 25 },
+];
+---
+
+<div class="reader mreader" role="dialog" aria-modal="true" aria-labelledby="m-title" data-mreader hidden>
+  <div class="m-bar">
+    <div class="bar-inner">
+      <div class="bar-left">
+        <button class="close" type="button" data-close title="Fermer (Échap)" aria-label="Fermer">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path></svg>
+        </button>
+        <div class="bar-title">
+          <p class="bar-k">La messe</p>
+          <p class="bar-s" data-m-short></p>
+        </div>
+      </div>
+      <div class="fs">
+        {fsButtons(false).map((b) => <button type="button" data-fs={b.dir} aria-label={b.label} style={`font-size:${b.size}px`}>A</button>)}
+      </div>
+    </div>
+    <div class="m-prog" data-m-prog></div>
+  </div>
+
+  <div class="m-wrap">
+    <aside class="m-aside">
+      <p class="m-aside-k">Liturgie de la Parole</p>
+      <div class="m-toc">
+        <span class="rail" aria-hidden="true"></span>
+        <ol data-m-toc></ol>
+      </div>
+    </aside>
+    <article class="m-article">
+      <p class="m-rank" data-m-rank></p>
+      <h2 id="m-title" class="m-title" data-m-title></h2>
+      <div data-m-body></div>
+      <div class="m-end">
+        <p class="m-source"><span aria-hidden="true">✦</span> Textes liturgiques · AELF</p>
+        <button class="m-hours" type="button" data-m-to-hours><span>Prier <span data-now-call>les laudes</span></span><span class="arrow" aria-hidden="true">→</span></button>
+      </div>
+    </article>
+  </div>
+</div>
+
+<div class="reader oreader" role="dialog" aria-modal="true" aria-labelledby="o-title" data-oreader hidden>
+  <div class="o-stars" data-o-stars aria-hidden="true">
+    {sky.map((s) => <span style={`left:${s.x.toFixed(1)}%;top:${s.y.toFixed(1)}%;width:${s.z.toFixed(2)}px;height:${s.z.toFixed(2)}px;animation-duration:${s.d.toFixed(2)}s;animation-delay:${s.delay.toFixed(2)}s`} />)}
+  </div>
+  <div class="o-glow" data-o-glow aria-hidden="true"></div>
+
+  <div class="o-bar">
+    <div class="bar-inner">
+      <div class="bar-left">
+        <button class="close" type="button" data-close title="Fermer (Échap)" aria-label="Fermer">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path></svg>
+        </button>
+        <div class="bar-title">
+          <p class="bar-k" data-o-window></p>
+          <p class="bar-s" data-o-sub></p>
+        </div>
+      </div>
+      <div class="o-tools">
+        <div class="modes" role="group" aria-label="Mode de lecture">
+          <button type="button" data-mode="guide" aria-pressed="true">Pas à pas</button>
+          <button type="button" data-mode="full" aria-pressed="false">Texte intégral</button>
+        </div>
+        <div class="fs">
+          {fsButtons(true).map((b) => <button type="button" data-fs={b.dir} aria-label={b.label} style={`font-size:${b.size}px`}>A</button>)}
+        </div>
+      </div>
+    </div>
+    <div class="o-hours" role="group" aria-label="Choisir l'heure">
+      {
+        HOURS.map((h, i) => (
+          <button type="button" data-o-hour={i}>
+            <span class="o-now" aria-hidden="true" />
+            {h.name}
+          </button>
+        ))
+      }
+    </div>
+  </div>
+
+  <div class="o-guide" data-o-guide>
+    <div class="o-scroll">
+      <div class="o-step" data-o-step aria-live="polite"></div>
+    </div>
+    <div class="o-nav">
+      <button class="o-prev" type="button" data-o-prev><span class="arrow" aria-hidden="true">←</span>Précédent</button>
+      <div class="o-dots" data-o-dots></div>
+      <button class="o-next" type="button" data-o-next><span data-o-next-label>Suivant</span><span class="arrow" aria-hidden="true">→</span></button>
+    </div>
+  </div>
+
+  <div class="o-full" data-o-full hidden>
+    <div class="o-full-inner" data-o-full-inner>
+      <h2 id="o-title" class="o-full-name" data-o-name></h2>
+      <p class="o-full-tag" data-o-tag></p>
+      <div class="o-full-steps" data-o-steps></div>
+      <div class="o-full-end">
+        <span class="o-source">Liturgie des heures · AELF</span>
+        <button class="o-next" type="button" data-o-to-guide>Prier pas à pas <span class="arrow" aria-hidden="true">→</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .reader {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    --fs-text: 27px;
+    --fs-big: clamp(32px, 4.2vw, 56px);
+    --fs-body: 26px;
+  }
+  .reader[hidden] {
+    display: none;
+  }
+  .reader:global(.fs-0) {
+    --fs-text: 23px;
+    --fs-big: clamp(28px, 3.4vw, 44px);
+    --fs-body: 22px;
+  }
+  .reader:global(.fs-2) {
+    --fs-text: 32px;
+    --fs-big: clamp(36px, 5vw, 68px);
+    --fs-body: 31px;
+  }
+
+  .bar-inner {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 12px var(--gutter);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .bar-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+  }
+  .close {
+    flex: none;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    box-shadow: inset 0 0 0 0.5px currentColor;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: inherit;
+    transition: background 0.3s;
+  }
+  .bar-title {
+    min-width: 0;
+  }
+  .bar-k {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .bar-s {
+    margin-top: 2px;
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 17px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .fs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .fs button {
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-family: var(--serif);
+    color: inherit;
+  }
+  .fs button:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+  .arrow {
+    font-family: var(--serif);
+    font-size: 20px;
+    letter-spacing: 0;
+  }
+
+  /* ---------- Messe ---------- */
+  .mreader {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .m-bar {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: rgba(239, 231, 211, 0.9);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border-bottom: 0.5px solid rgba(35, 32, 26, 0.18);
+  }
+  .mreader .close {
+    box-shadow: inset 0 0 0 0.5px rgba(35, 32, 26, 0.4);
+  }
+  .mreader .close:hover,
+  .mreader .fs button:hover:not(:disabled) {
+    background: rgba(35, 32, 26, 0.06);
+  }
+  .mreader .bar-k {
+    color: var(--oxblood);
+  }
+  .mreader .bar-s {
+    color: rgba(35, 32, 26, 0.72);
+  }
+  .m-prog {
+    height: 2px;
+    width: 0;
+    background: linear-gradient(90deg, var(--gold), var(--oxblood));
+  }
+  .m-wrap {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 64px var(--gutter) 140px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px 80px;
+    align-items: flex-start;
+  }
+  .m-aside {
+    flex: 0 1 250px;
+    position: sticky;
+    top: 120px;
+  }
+  .m-aside-k {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(35, 32, 26, 0.62);
+  }
+  .m-toc {
+    position: relative;
+    margin-top: 24px;
+    padding-left: 28px;
+  }
+  .rail {
+    position: absolute;
+    left: 5px;
+    top: 8px;
+    bottom: 8px;
+    width: 0.5px;
+    background: rgba(35, 32, 26, 0.28);
+  }
+  .m-toc ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .m-toc :global(button) {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    border: 0;
+    background: none;
+    padding: 0;
+    text-align: left;
+    cursor: pointer;
+  }
+  .m-toc :global(.t-dot) {
+    position: absolute;
+    left: -28px;
+    top: 4px;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--paper);
+    box-shadow: inset 0 0 0 1px rgba(35, 32, 26, 0.4);
+    transition: all 0.5s var(--ease);
+  }
+  .m-toc :global(.t-label) {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(35, 32, 26, 0.6);
+    transition: color 0.4s;
+  }
+  .m-toc :global(.t-ref) {
+    font-family: var(--serif-text);
+    font-size: 16px;
+    color: rgba(35, 32, 26, 0.68);
+  }
+  .m-toc :global(li.on .t-label) {
+    color: var(--oxblood);
+  }
+  .m-toc :global(li.on .t-dot) {
+    background: var(--gold);
+    box-shadow: none;
+  }
+  .m-toc :global(li.cur .t-dot) {
+    background: var(--oxblood);
+    box-shadow: 0 0 0 5px rgba(107, 30, 35, 0.16);
+  }
+
+  .m-article {
+    flex: 1 1 560px;
+    min-width: 0;
+    max-width: 780px;
+  }
+  .m-rank {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--oxblood);
+  }
+  .m-title {
+    margin-top: 14px;
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: clamp(44px, 5vw, 76px);
+    line-height: 0.98;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+  .m-title :global(em) {
+    color: var(--oxblood);
+  }
+  .m-title :global(sup) {
+    font-size: 0.55em;
+    vertical-align: 0.7em;
+    line-height: 0;
+  }
+
+  .m-article :global(.ms) {
+    margin-top: 56px;
+    padding-top: 40px;
+    border-top: 0.5px solid rgba(35, 32, 26, 0.22);
+  }
+  .m-article :global(.ms-head) {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .m-article :global(.ms-label) {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--oxblood);
+  }
+  .m-article :global(.ms-ref) {
+    font-family: var(--serif-text);
+    font-size: 18px;
+    color: rgba(35, 32, 26, 0.7);
+  }
+  .m-article :global(.ms-intro) {
+    margin-top: 14px;
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 19px;
+    color: rgba(35, 32, 26, 0.72);
+  }
+  .m-article :global(.ms-refrain) {
+    margin-top: 22px;
+    display: flex;
+    gap: 16px;
+    align-items: baseline;
+    padding: 20px 24px;
+    border-radius: 18px;
+    background: var(--night-cream);
+    box-shadow: inset 0 0 0 0.5px rgba(181, 137, 46, 0.6);
+  }
+  .m-article :global(.ms-r) {
+    font-family: var(--serif);
+    font-size: 30px;
+    color: var(--gold);
+  }
+  .m-article :global(.ms-refrain p) {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: var(--fs-text);
+    line-height: 1.3;
+  }
+  .m-article :global(.ms-text) {
+    margin-top: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .m-article :global(.ms-text p) {
+    font-family: var(--serif);
+    font-size: var(--fs-text);
+    line-height: 1.45;
+    white-space: pre-line;
+    text-wrap: pretty;
+  }
+  .m-article :global(.ms-text .ms-r) {
+    font-size: 18px;
+    line-height: 1;
+  }
+  .m-article :global(.ms-close) {
+    margin-top: 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-family: var(--serif-text);
+    font-size: 18px;
+    color: rgba(35, 32, 26, 0.78);
+  }
+  .m-article :global(.ms-close b) {
+    font-weight: 400;
+    color: var(--gold);
+  }
+
+  .m-article :global(.ms-ev) {
+    position: relative;
+    overflow: hidden;
+    margin-top: 56px;
+    padding: 52px clamp(24px, 5vw, 56px) 54px;
+    border-top: 0;
+    border-radius: 28px;
+    background: radial-gradient(90% 90% at 88% 0%, #3a1a1e 0%, var(--ink) 70%);
+    color: var(--night-cream);
+    box-shadow: 0 40px 70px -40px rgba(35, 32, 26, 0.9);
+  }
+  .m-article :global(.ms-ev .ms-cross) {
+    position: absolute;
+    right: -20px;
+    top: -70px;
+    font-family: var(--serif);
+    font-size: 300px;
+    line-height: 1;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(240, 213, 142, 0.2);
+    pointer-events: none;
+  }
+  .m-article :global(.ms-ev > *) {
+    position: relative;
+  }
+  .m-article :global(.ms-acc-k) {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(240, 213, 142, 0.85);
+  }
+  .m-article :global(.ms-acc) {
+    margin-top: 10px;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 26px;
+    line-height: 1.35;
+    color: var(--night-gold);
+    white-space: pre-line;
+    text-wrap: pretty;
+  }
+  .m-article :global(.ms-ev .ms-head) {
+    margin-top: 34px;
+  }
+  .m-article :global(.ms-ev .ms-label) {
+    color: var(--night-gold);
+  }
+  .m-article :global(.ms-ev .ms-ref),
+  .m-article :global(.ms-ev .ms-intro) {
+    color: rgba(244, 237, 220, 0.75);
+  }
+  .m-article :global(.ms-ev .ms-close) {
+    color: rgba(244, 237, 220, 0.82);
+  }
+  .m-article :global(.ms-ev .ms-close b) {
+    color: var(--night-gold);
+  }
+
+  .m-end {
+    margin-top: 48px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .m-source {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(35, 32, 26, 0.62);
+  }
+  .m-source span {
+    font-family: var(--serif);
+    font-size: 14px;
+    color: var(--gold);
+  }
+  .m-hours {
+    min-height: 52px;
+    padding: 0 24px;
+    border: 0;
+    border-radius: 26px;
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--night-gold);
+    transition: gap 0.3s;
+  }
+  .m-hours:hover {
+    gap: 18px;
+  }
+
+  /* ---------- Office ---------- */
+  .oreader {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--night);
+    color: var(--night-cream);
+  }
+  .oreader[hidden] {
+    display: none;
+  }
+  .o-stars {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 60%;
+    pointer-events: none;
+  }
+  .o-stars span {
+    position: absolute;
+    border-radius: 50%;
+    background: #fff6de;
+    box-shadow: 0 0 6px rgba(255, 236, 190, 0.9);
+    animation: twinkle 3s ease-in-out infinite;
+  }
+  .o-glow {
+    position: absolute;
+    left: 50%;
+    top: -260px;
+    width: 620px;
+    height: 620px;
+    margin-left: -310px;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .o-bar {
+    position: relative;
+    z-index: 2;
+    border-bottom: 0.5px solid rgba(240, 213, 142, 0.22);
+  }
+  .o-bar .bar-inner {
+    flex-wrap: wrap;
+  }
+  .oreader .close {
+    box-shadow: inset 0 0 0 0.5px rgba(244, 237, 220, 0.45);
+  }
+  .oreader .close:hover,
+  .oreader .fs button:hover:not(:disabled) {
+    background: rgba(244, 237, 220, 0.08);
+  }
+  .oreader .bar-k {
+    color: var(--night-gold);
+  }
+  .oreader .bar-s {
+    color: rgba(244, 237, 220, 0.75);
+  }
+  .o-tools {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .modes {
+    display: flex;
+    height: 40px;
+    padding: 3px;
+    border-radius: 20px;
+    background: rgba(244, 237, 220, 0.08);
+    box-shadow: inset 0 0 0 0.5px rgba(244, 237, 220, 0.25);
+  }
+  .modes button {
+    flex: none;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 17px;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(244, 237, 220, 0.8);
+    transition:
+      background 0.4s,
+      color 0.4s;
+  }
+  .modes button[aria-pressed='true'] {
+    background: var(--night-gold);
+    color: var(--night);
+  }
+  .o-hours {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 var(--gutter) 12px;
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+  }
+  .o-hours button {
+    flex: none;
+    min-height: 36px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 18px;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 18px;
+    color: rgba(244, 237, 220, 0.68);
+    transition:
+      background 0.4s,
+      color 0.4s;
+  }
+  .o-hours button[aria-pressed='true'] {
+    background: rgba(244, 237, 220, 0.14);
+    color: var(--night-cream);
+  }
+  .o-now {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+  .o-hours :global(button.is-now) .o-now {
+    background: var(--night-gold);
+  }
+
+  .o-guide {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .o-guide[hidden] {
+    display: none;
+  }
+  .o-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    padding: 24px var(--gutter);
+  }
+  .o-step {
+    margin: auto;
+    padding: 12px 0 28px;
+    max-width: 900px;
+    width: 100%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .o-step :global(.s-hour) {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(30px, 4vh, 44px);
+    color: rgba(244, 237, 220, 0.6);
+  }
+  .o-step :global(.s-k) {
+    margin-top: 22px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--night-gold);
+  }
+  .o-step :global(.s-ref) {
+    margin-top: 8px;
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 19px;
+    color: rgba(244, 237, 220, 0.72);
+  }
+  .o-step :global(.s-ant),
+  .o-full :global(.f-ant) {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--night-gold);
+    text-wrap: balance;
+  }
+  .o-step :global(.s-ant) {
+    margin-top: 22px;
+    max-width: 680px;
+    font-size: calc(var(--fs-body) * 0.95);
+    line-height: 1.3;
+  }
+  .o-step :global(.s-big) {
+    margin-top: 28px;
+    font-family: var(--serif);
+    font-size: var(--fs-big);
+    line-height: 1.25;
+    white-space: pre-line;
+    text-wrap: balance;
+  }
+  .o-step :global(.s-long) {
+    margin-top: 28px;
+    max-width: 760px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .o-step :global(.s-long p) {
+    font-family: var(--serif);
+    font-size: var(--fs-body);
+    line-height: 1.45;
+    white-space: pre-line;
+    text-wrap: pretty;
+  }
+  .o-step :global(.s-sub) {
+    margin-top: 26px;
+    max-width: 560px;
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 19px;
+    line-height: 1.45;
+    color: rgba(244, 237, 220, 0.72);
+    text-wrap: pretty;
+  }
+  .o-nav {
+    max-width: 1320px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 16px var(--gutter) 28px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 20px;
+    align-items: center;
+  }
+  .o-prev,
+  .o-next {
+    min-height: 50px;
+    border: 0;
+    border-radius: 25px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: 12px;
+    text-transform: uppercase;
+  }
+  .o-prev {
+    padding: 0 20px;
+    background: transparent;
+    box-shadow: inset 0 0 0 0.5px rgba(244, 237, 220, 0.45);
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    color: var(--night-cream);
+  }
+  .o-prev:hover:not(:disabled) {
+    color: var(--night-gold);
+  }
+  .o-prev:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+  .o-next {
+    padding: 0 24px;
+    background: var(--night-gold);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--ink);
+  }
+  .o-next:hover {
+    background: #f4dfa4;
+  }
+  .o-next .arrow {
+    color: var(--oxblood);
+  }
+  .o-dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .o-dots :global(button) {
+    width: 6px;
+    height: 6px;
+    padding: 0;
+    border: 0;
+    border-radius: 3px;
+    cursor: pointer;
+    background: rgba(244, 237, 220, 0.3);
+    transition: all 0.5s var(--ease);
+  }
+  .o-dots :global(button.done) {
+    background: var(--night-gold);
+  }
+  .o-dots :global(button[aria-current='step']) {
+    width: 26px;
+    background: var(--night-gold);
+  }
+
+  .o-full {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .o-full[hidden] {
+    display: none;
+  }
+  .o-full-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 56px var(--gutter) 120px;
+  }
+  .o-full-name {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-style: italic;
+    font-size: clamp(56px, 8vw, 112px);
+    line-height: 0.9;
+    color: var(--night-cream);
+  }
+  .o-full-tag {
+    margin-top: 14px;
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 21px;
+    color: rgba(244, 237, 220, 0.78);
+  }
+  .o-full-steps {
+    margin-top: 44px;
+    display: flex;
+    flex-direction: column;
+  }
+  .o-full :global(.f-step) {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    gap: 10px 40px;
+    padding: 30px 0;
+    border-top: 0.5px solid rgba(244, 237, 220, 0.2);
+  }
+  .o-full :global(.f-meta) {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .o-full :global(.f-k) {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--night-gold);
+  }
+  .o-full :global(.f-ref) {
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 17px;
+    color: rgba(244, 237, 220, 0.7);
+  }
+  .o-full :global(.f-body) {
+    grid-column: span 2;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .o-full :global(.f-ant) {
+    font-size: var(--fs-text);
+    line-height: 1.35;
+  }
+  .o-full :global(.f-body p) {
+    font-family: var(--serif);
+    font-size: var(--fs-text);
+    line-height: 1.45;
+    white-space: pre-line;
+    text-wrap: pretty;
+  }
+  .o-full :global(.f-sub) {
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 18px;
+    color: rgba(244, 237, 220, 0.72);
+  }
+  .o-full-end {
+    margin-top: 20px;
+    padding-top: 30px;
+    border-top: 0.5px solid rgba(244, 237, 220, 0.2);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .o-source {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(244, 237, 220, 0.6);
+  }
+
+  @keyframes twinkle {
+    0%,
+    100% {
+      opacity: 0.15;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  @media (max-width: 999px) {
+    .m-aside {
+      display: none;
+    }
+    .m-wrap {
+      padding-top: 40px;
+    }
+  }
+  @media (max-width: 599px) {
+    .o-nav {
+      gap: 10px;
+    }
+    .o-prev {
+      font-size: 0;
+      padding: 0 16px;
+    }
+    .o-prev .arrow {
+      font-size: 20px;
+    }
+    .o-dots {
+      gap: 5px;
+    }
+    .modes button {
+      padding: 0 10px;
+    }
+  }
+</style>

@@ -1,0 +1,77 @@
+---
+import { Image } from 'astro:assets';
+import icon from '../../assets/icone/icon-180.png';
+---
+
+<footer class="footer">
+  <div class="inner">
+    <div class="brand">
+      <Image src={icon} alt="" width={36} height={36} densities={[1, 2]} loading="lazy" />
+      <div>
+        <div class="name">Bibliae</div>
+        <div class="src">Textes liturgiques · <a href="https://www.aelf.org" rel="noopener">AELF</a></div>
+      </div>
+    </div>
+    <nav class="links" aria-label="Liens légaux">
+      <a href="/mentions-legales">Mentions légales</a>
+      <a href="/confidentialite">Confidentialité</a>
+      <a href="/contact">Contact</a>
+    </nav>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    background: var(--night);
+    border-top: 0.5px solid rgba(240, 213, 142, 0.22);
+    padding: 56px var(--gutter) 60px;
+  }
+  .inner {
+    max-width: 1320px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .brand img {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+  }
+  .name {
+    font-family: var(--serif);
+    font-size: 24px;
+    color: var(--night-cream);
+  }
+  .src {
+    margin-top: 2px;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(244, 237, 220, 0.6);
+  }
+  .src a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .links {
+    display: flex;
+    gap: 26px;
+    flex-wrap: wrap;
+  }
+  .links a {
+    font-size: 13px;
+    color: rgba(244, 237, 220, 0.75);
+  }
+  .links a:hover {
+    color: var(--night-gold);
+  }
+</style>

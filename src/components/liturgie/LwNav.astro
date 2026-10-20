@@ -1,0 +1,111 @@
+---
+import { Image } from 'astro:assets';
+import icon from '../../assets/icone/icon-180.png';
+---
+
+<header class="nav">
+  <nav class="inner" aria-label="Navigation de la liturgie">
+    <a class="brand" href="/" aria-label="Bibliae, accueil">
+      <Image src={icon} alt="" width={32} height={32} densities={[1, 2]} loading="eager" />
+      <span class="name">Bibliae</span><span class="sub">la Liturgie</span>
+    </a>
+    <div class="links">
+      <a class="link" href="#jour">Aujourd'hui</a>
+      <a class="link" href="#lecture">Lecture du jour</a>
+      <a class="link" href="#heures">Les heures</a>
+      <a class="cta" href="/">L'application</a>
+    </div>
+  </nav>
+</header>
+
+<style>
+  .nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    z-index: 40;
+    padding: 14px 0;
+    background: rgba(15, 21, 38, 0.72);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border-bottom: 0.5px solid rgba(240, 213, 142, 0.22);
+  }
+  .inner {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 var(--gutter);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand img {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+  }
+  .name {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 24px;
+    color: var(--night-cream);
+  }
+  .sub {
+    margin-left: -2px;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 19px;
+    color: var(--night-gold);
+  }
+  .links {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+  }
+  .link {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(244, 237, 220, 0.8);
+  }
+  .link:hover {
+    color: var(--night-cream);
+  }
+  .cta {
+    min-height: 42px;
+    padding: 0 18px;
+    border-radius: 21px;
+    background: var(--night-gold);
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--night);
+    transition: transform 0.3s var(--ease);
+  }
+  .cta:hover {
+    transform: translateY(-2px);
+    color: var(--night);
+  }
+
+  @media (max-width: 819px) {
+    .link {
+      display: none;
+    }
+  }
+  .brand span {
+    white-space: nowrap;
+  }
+  @media (max-width: 419px) {
+    .sub {
+      display: none;
+    }
+  }
+</style>

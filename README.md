@@ -14,8 +14,8 @@ npm run check
 
 ## Pré-lancement / sortie
 
-Le site est en mode pré-lancement (« Bientôt disponible · fin 2026 », boutons stores désactivés).
-Le jour de la sortie : dans `src/config.ts`, passer `PRELAUNCH` à `false`, renseigner les liens stores, puis rebuilder.
+Le site est en mode pré-lancement (« Sur iPhone le 22 octobre », boutons stores désactivés).
+Chaque plateforme a son interrupteur dans `src/config.ts` : le jour de la sortie iOS, passer `IOS.live` à `true` et renseigner `APP_STORE_ID` ; idem plus tard pour `ANDROID` (et `PLAY_STORE_URL`), puis rebuilder. `PRELAUNCH` en découle (vrai tant qu'aucune version n'est sortie) ; chaque bouton de store s'active seul.
 
 Pour un texte qui dépend du mode, utiliser `ModeText` :
 
@@ -28,10 +28,11 @@ Pour un texte qui dépend du mode, utiliser `ModeText` :
 
 ## Où modifier quoi
 
-- `src/config.ts` : `PRELAUNCH`, liens et identifiants des stores, date de sortie, URL du site, e-mail de contact.
+- `src/config.ts` : sorties `IOS` / `ANDROID` (statut et date affichée), liens et identifiants des stores, URL du site, e-mail de contact.
 - `astro.config.mjs` et `public/robots.txt` : domaine (`https://bibliae.app`).
 - `src/components/` : une section par fichier ; `src/styles/global.css` : tokens, polices et boucles d'animation.
 - `src/scripts/motion.ts` : apparitions, parallaxe, barre de progression, nav, inclinaison, téléphone fixe.
+- `/liturgie` (`src/pages/liturgie.astro`, `src/components/liturgie/`, `src/scripts/liturgie/`) : liturgie du jour, messe et liturgie des heures (forme ordinaire). Les textes sont chargés dans le navigateur depuis l'API AELF (`api.aelf.org`, zone France) ; `?date=AAAA-MM-JJ` ouvre un autre jour.
 - `scripts/gen-icons.mjs` : regénère `public/favicon.ico` et `public/og-image.jpg` à partir de `assets/icone/icon-1024.png`.
 
 ## Formulaire de contact
