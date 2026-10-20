@@ -1,9 +1,26 @@
 ---
 import { Image } from 'astro:assets';
 import icon from '../../assets/icone/icon-180.png';
+import { HOUR_PAGES } from '../../scripts/liturgie/server';
 ---
 
 <footer class="footer">
+  <nav class="pages" aria-label="Pages de la liturgie">
+    <div>
+      <p class="k">Chaque jour</p>
+      <ul>
+        <li><a href="/liturgie">Liturgie du jour</a></li>
+        <li><a href="/liturgie/messe">Lecture de la messe du jour</a></li>
+        <li><a href="/liturgie/messe#evangile">Évangile du jour</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="k">Liturgie des heures</p>
+      <ul>
+        {HOUR_PAGES.map((h) => <li><a href={`/liturgie/${h.slug}`}>{h.name}</a></li>)}
+      </ul>
+    </div>
+  </nav>
   <div class="inner">
     <div class="brand">
       <Image src={icon} alt="" width={36} height={36} densities={[1, 2]} loading="lazy" />
@@ -26,9 +43,40 @@ import icon from '../../assets/icone/icon-180.png';
     border-top: 0.5px solid rgba(240, 213, 142, 0.22);
     padding: 56px var(--gutter) 60px;
   }
+  .pages {
+    max-width: 1320px;
+    margin: 0 auto 48px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px 80px;
+  }
+  .k {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--night-gold);
+  }
+  .pages ul {
+    margin-top: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+  }
+  .pages a {
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 17px;
+    color: rgba(244, 237, 220, 0.8);
+  }
+  .pages a:hover {
+    color: var(--night-gold);
+  }
   .inner {
     max-width: 1320px;
     margin: 0 auto;
+    padding-top: 32px;
+    border-top: 0.5px solid rgba(240, 213, 142, 0.16);
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;

@@ -209,15 +209,24 @@ const quote = (r: Reading) => {
   return q || r.paras[0]?.split('\n')[0] || '';
 };
 
+/** Liens de la page vers la version texte (messe, heures) : utiles sans JS et pour Google. */
+const withDate = (path: string) => (date === today ? path : `${path}?date=${date}`);
+
 async function loadMass() {
   const status = $('[data-mass-status]');
   const want = date;
-  if (status) status.textContent = 'Chargement des lectures…';
-  $('[data-cards]')?.replaceChildren();
-  const gospel = $('[data-read]#r-ev');
-  if (gospel) gospel.hidden = true;
-  $('[data-toc]')?.replaceChildren();
-  ($('[data-open-mass]') as HTMLButtonElement | null)?.setAttribute('disabled', '');
+  // Le serveur a déjà rendu les cartes de ce jour : on ne les efface pas
+  const ssr = el.read?.dataset.date === want;
+  if (el.read) delete el.read.dataset.date;
+  $('[data-open-mass]')?.setAttribute('href', withDate('/liturgie/messe'));
+  $('[data-open-gospel]')?.setAttribute('href', `${withDate('/liturgie/messe')}#evangile`);
+  if (!ssr) {
+    if (status) status.textContent = 'Chargement des lectures…';
+    $('[data-cards]')?.replaceChildren();
+    const gospel = $('[data-read]#r-ev');
+    if (gospel) gospel.hidden = true;
+    $('[data-toc]')?.replaceChildren();
+  }
   try {
     const ms = await getMasses(want);
     if (want !== date) return;
@@ -226,7 +235,10 @@ async function loadMass() {
     if (!masses.length) throw new Error('vide');
     if (status) status.textContent = '';
     renderMassChoice();
-    renderMass();
+    if (ssr) {
+      renderMassReader();
+      tick();
+    } else renderMass();
   } catch {
     if (want !== date || !status) return;
     status.replaceChildren(
@@ -264,7 +276,7 @@ function renderMass() {
         'article',
         { class: 'card', id: `r-${i}`, 'data-read': '', 'data-rv': '0' },
         MARKS[r.type] ? h('span', { class: 'c-mark', 'aria-hidden': 'true' }, MARKS[r.type]) : null,
-        h('div', { class: 'c-head' }, h('span', { class: 'c-label' }, r.label), h('span', { class: 'c-ref' }, r.ref)),
+        h('div', { class: 'c-head' }, h('h3', { class: 'c-label' }, r.label), h('span', { class: 'c-ref' }, r.ref)),
         h('p', { class: 'c-q' }, quote(r)),
       ),
     ),
@@ -292,7 +304,6 @@ function renderMass() {
       ),
     ),
   );
-  $('[data-open-mass]')?.removeAttribute('disabled');
   activeCard = -1;
   observe();
   renderMassReader();
@@ -477,6 +488,7 @@ function renderHourPanel(animate: boolean) {
   set('[data-hr-name]', hr.name);
   set('[data-hr-tag]', hr.tag);
   set('[data-hr-call]', hr.call);
+  $$('[data-pray], [data-full]').forEach((a) => a.setAttribute('href', withDate(`/liturgie/${hr.slug}`)));
   set('[data-counter]', `${String(k + 1).padStart(2, '0')} / ${String(HOURS.length).padStart(2, '0')}`);
   $$('[data-hour-dot]').forEach((b, i) => b.classList.toggle('is-on', i === k));
   const parts = $('[data-hr-parts]');
@@ -500,8 +512,18 @@ function scrollToHour(i: number) {
 }
 $$('[data-hour-dot]').forEach((b, i) => b.addEventListener('click', () => scrollToHour(i)));
 $$('[data-go-now]').forEach((b) => b.addEventListener('click', () => scrollToHour(nowI)));
-$('[data-pray]')?.addEventListener('click', () => openOffice(Math.max(0, hi), 'guide'));
-$('[data-full]')?.addEventListener('click', () => openOffice(Math.max(0, hi), 'full'));
+// Liens vers la page de l'heure ; avec JS, on ouvre plutôt la liseuse (clic simple uniquement)
+const plainClick = (e: MouseEvent) => e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
+$('[data-pray]')?.addEventListener('click', (e) => {
+  if (!plainClick(e)) return;
+  e.preventDefault();
+  openOffice(Math.max(0, hi), 'guide');
+});
+$('[data-full]')?.addEventListener('click', (e) => {
+  if (!plainClick(e)) return;
+  e.preventDefault();
+  openOffice(Math.max(0, hi), 'full');
+});
 
 /* ---------- Liseuses ---------- */
 
@@ -649,8 +671,16 @@ function openMesse(anchor?: string) {
   onMesseScroll();
   if (anchor) setTimeout(() => scrollMesseTo(anchor, 'auto'), 20);
 }
-$('[data-open-mass]')?.addEventListener('click', () => openMesse());
-$('[data-open-gospel]')?.addEventListener('click', () => openMesse('m-ev'));
+$('[data-open-mass]')?.addEventListener('click', (e) => {
+  if (!masses.length || !plainClick(e)) return; // lectures pas encore chargées : on suit le lien
+  e.preventDefault();
+  openMesse();
+});
+$('[data-open-gospel]')?.addEventListener('click', (e) => {
+  if (!masses.length || !plainClick(e)) return;
+  e.preventDefault();
+  openMesse('m-ev');
+});
 $('[data-m-to-hours]')?.addEventListener('click', () => {
   closeReader();
   setTimeout(() => openOffice(nowI, 'guide'), 50);

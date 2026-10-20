@@ -71,21 +71,30 @@ function get<T>(path: string): Promise<T> {
 
 /* ---------- HTML de l'API → texte brut ---------- */
 
-const parser = typeof DOMParser !== 'undefined' ? new DOMParser() : null;
+// Sans DOM : ces fonctions tournent aussi côté serveur (pages /liturgie rendues pour Google).
+const ENTITIES: Record<string, string> = {
+  amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', laquo: '«', raquo: '»', rsquo: '’', lsquo: '‘', ldquo: '“', rdquo: '”',
+  hellip: '…', ndash: '–', mdash: '—', oelig: 'œ', OElig: 'Œ', aelig: 'æ', AElig: 'Æ', ccedil: 'ç', Ccedil: 'Ç',
+  agrave: 'à', Agrave: 'À', acirc: 'â', Acirc: 'Â', auml: 'ä', eacute: 'é', Eacute: 'É', egrave: 'è', Egrave: 'È', ecirc: 'ê', Ecirc: 'Ê',
+  euml: 'ë', icirc: 'î', Icirc: 'Î', iuml: 'ï', ocirc: 'ô', Ocirc: 'Ô', ouml: 'ö', ugrave: 'ù', ucirc: 'û', Ucirc: 'Û', uuml: 'ü', yuml: 'ÿ',
+};
+const decode = (s: string) =>
+  s.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, e: string) =>
+    e[0] === '#' ? String.fromCodePoint(e[1].toLowerCase() === 'x' ? parseInt(e.slice(2), 16) : +e.slice(1)) : (ENTITIES[e] ?? m),
+  );
 
 /** Paragraphes de texte brut ; les retours à la ligne internes (versets, strophes) sont gardés en « \n ». */
 export function blocks(html: string | null | undefined): string[] {
-  if (!html || !parser) return [];
+  if (!html) return [];
   // Les retours à la ligne du source ne comptent pas : seuls <br> et <p> structurent le texte
-  const doc = parser.parseFromString(`<div>${html.replace(/\s*\n\s*/g, ' ')}</div>`, 'text/html');
-  const root = doc.body.firstElementChild as HTMLElement;
-  root.querySelectorAll('.verse_number, script, style').forEach((n) => n.remove());
-  root.querySelectorAll('br').forEach((br) => br.replaceWith('\n'));
-  root.querySelectorAll('p, div').forEach((p) => {
-    p.prepend('\n\n');
-    p.append('\n\n');
-  });
-  return (root.textContent ?? '')
+  const text = html
+    .replace(/\s*\n\s*/g, ' ')
+    .replace(/<(script|style)\b[\s\S]*?<\/\1>/gi, '')
+    .replace(/<span[^>]*class="verse_number"[^>]*>[\s\S]*?<\/span>/gi, '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/?(p|div)\b[^>]*>/gi, '\n\n')
+    .replace(/<[^>]+>/g, '');
+  return decode(text)
     .replace(/ /g, ' ')
     .split(/\n\s*\n/)
     .map((b) =>

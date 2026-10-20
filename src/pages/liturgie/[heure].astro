@@ -1,0 +1,354 @@
+---
+// Une heure de la liturgie des heures (laudes, vêpres, complies…), texte intégral rendu côté serveur.
+import Base from '../../layouts/Base.astro';
+import LwNav from '../../components/liturgie/LwNav.astro';
+import LwFooter from '../../components/liturgie/LwFooter.astro';
+import LwDayNav from '../../components/liturgie/LwDayNav.astro';
+import { getInfo, getOffice, type Office } from '../../scripts/liturgie/aelf';
+import { cap, roman, title as dayTitle, type Title } from '../../scripts/liturgie/calendar';
+import { HOUR_PAGES, cache, clip, longDate, pageDate, schema } from '../../scripts/liturgie/server';
+
+export const prerender = false;
+
+const hour = HOUR_PAGES.find((h) => h.slug === Astro.params.heure);
+if (!hour) return new Response(null, { status: 404 });
+
+const { date, d, today, isToday } = pageDate(Astro.url);
+const dateLabel = longDate(d);
+
+let office: Office | null = null;
+let t: Title | null = null;
+let psalter = '';
+try {
+  const [info, o] = await Promise.all([getInfo(date), getOffice(hour.key, date)]);
+  office = o.steps.length ? o : null;
+  t = dayTitle(info, d);
+  const m = `${info.jour_liturgique_nom ?? ''} ${info.ligne1 ?? ''}`.match(/semaine (IV|I{1,3}) du Psautier/i);
+  const n = Number.parseInt(info.semaine ?? '', 10);
+  psalter = m ? `Semaine ${m[1].toUpperCase()} du psautier` : n ? `Semaine ${roman(((n - 1) % 4) + 1)} du psautier` : '';
+} catch {
+  office = null;
+}
+const ok = !!office;
+cache(Astro.response.headers, ok);
+if (!ok) Astro.response.status = 503;
+
+const hymn = office?.steps.find((s) => s.k === 'Hymne');
+const parts = office?.parts.map(([, ref]) => ref).join(', ') ?? '';
+const label = `${hour.name} du jour`;
+const pageTitle = isToday ? `${label} — ${cap(dateLabel)} | Bibliae` : `${hour.name} du ${dateLabel} | Bibliae`;
+const description = ok
+  ? clip(`Prier ${hour.title} du ${dateLabel} : ${hymn?.ref ? `hymne « ${hymn.ref} », ` : ''}${parts}. Texte intégral de la liturgie des heures (AELF).`)
+  : `${hour.name} du ${dateLabel} : texte intégral de la liturgie des heures.`;
+const path = `/liturgie/${hour.slug}`;
+const steps = office?.steps ?? [];
+const sid = (i: number) => `p${i + 1}`;
+---
+
+<Base
+  title={pageTitle}
+  description={description}
+  ogTitle={isToday ? `${label} — ${dateLabel}` : `${hour.name} du ${dateLabel}`}
+  ogDescription={description}
+  noindex={!isToday}
+  themeColor="#0F1526"
+  schema={schema({
+    url: path,
+    name: isToday ? label : `${hour.name} du ${dateLabel}`,
+    description,
+    date,
+    crumbs: [['Accueil', '/'], ['Liturgie du jour', '/liturgie'], [hour.name, path]],
+  })}
+>
+  <LwNav />
+  <main id="contenu" class="page">
+    <div class="wrap">
+      <nav class="crumbs" aria-label="Fil d'Ariane">
+        <a href="/">Accueil</a><span aria-hidden="true">›</span><a href="/liturgie">Liturgie du jour</a><span aria-hidden="true">›</span><span aria-current="page">{hour.name}</span>
+      </nav>
+
+      <nav class="hours" aria-label="Les heures de la journée">
+        {
+          HOUR_PAGES.map((h) => (
+            <a href={isToday ? `/liturgie/${h.slug}` : `/liturgie/${h.slug}?date=${date}`} aria-current={h.slug === hour.slug ? 'page' : undefined}>
+              {h.name}
+            </a>
+          ))
+        }
+      </nav>
+
+      <header class="head">
+        <p class="eyebrow">Liturgie des heures · {hour.window}</p>
+        <h1>
+          {isToday ? label : hour.name}
+          <span class="date">{cap(dateLabel)}</span>
+        </h1>
+        <p class="tag">{hour.tag}</p>
+        {t && (
+          <p class="day">
+            {t.l1}
+            {t.sup && <sup>{t.sup}</sup>} {t.l2}
+            {psalter && <> · {psalter}</>}
+          </p>
+        )}
+        <LwDayNav path={path} date={date} today={today} tone="night" />
+      </header>
+
+      {
+        !ok && (
+          <p class="status">
+            L'office n'a pas pu être chargé pour le moment. <a href={`https://www.aelf.org/${date}/romain/${hour.key}`}>Le lire sur aelf.org</a>
+          </p>
+        )
+      }
+
+      {
+        ok && (
+          <ol class="plan" aria-label="Déroulé de l'office">
+            {steps.map((s, i) => (
+              <li>
+                <a href={`#${sid(i)}`}>{s.k}</a>
+              </li>
+            ))}
+          </ol>
+        )
+      }
+
+      <article class="text">
+        {
+          steps.map((s, i) => (
+            <section class="step" id={sid(i)} aria-labelledby={`${sid(i)}-h`}>
+              <div class="meta">
+                <h2 id={`${sid(i)}-h`}>{s.k}</h2>
+                {s.ref && <p class="ref">{s.ref}</p>}
+              </div>
+              <div class="body">
+                {s.ant && <p class="ant">Antienne : {s.ant}</p>}
+                {s.paras.map((p) => <p>{p}</p>)}
+                {s.sub && <p class="sub">{s.sub}</p>}
+              </div>
+            </section>
+          ))
+        }
+        <p class="source"><span aria-hidden="true">✦</span> Liturgie des heures © AELF — <a href="https://www.aelf.org">aelf.org</a></p>
+        <p class="more">
+          <a href={isToday ? '/liturgie/messe' : `/liturgie/messe?date=${date}`}>Lire aussi la lecture de la messe du {dateLabel} →</a>
+        </p>
+      </article>
+    </div>
+  </main>
+  <LwFooter />
+</Base>
+
+<style>
+  .page {
+    background:
+      radial-gradient(120% 60% at 50% -10%, rgba(240, 213, 142, 0.12), transparent 60%),
+      var(--night);
+    color: var(--night-cream);
+    padding: 110px var(--gutter) 120px;
+  }
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+  }
+  .crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 12px;
+    color: rgba(244, 237, 220, 0.6);
+  }
+  .crumbs a {
+    color: inherit;
+  }
+  .crumbs a:hover {
+    color: var(--night-gold);
+  }
+  .hours {
+    margin-top: 22px;
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .hours a {
+    flex: none;
+    min-height: 36px;
+    padding: 0 14px;
+    border-radius: 18px;
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 18px;
+    color: rgba(244, 237, 220, 0.7);
+  }
+  .hours a:hover {
+    color: var(--night-gold);
+  }
+  .hours a[aria-current='page'] {
+    background: rgba(244, 237, 220, 0.14);
+    color: var(--night-cream);
+  }
+
+  .head {
+    margin-top: 40px;
+  }
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--night-gold);
+  }
+  h1 {
+    margin-top: 12px;
+    font-family: var(--serif);
+    font-weight: 300;
+    font-style: italic;
+    font-size: clamp(56px, 8vw, 112px);
+    line-height: 0.92;
+    color: var(--night-cream);
+  }
+  .date {
+    display: block;
+    margin-top: 12px;
+    font-size: 0.32em;
+    color: var(--night-gold);
+  }
+  .tag {
+    margin-top: 18px;
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 21px;
+    color: rgba(244, 237, 220, 0.78);
+  }
+  .day {
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: rgba(244, 237, 220, 0.62);
+  }
+  .day sup {
+    line-height: 0;
+  }
+  .head :global(.daynav) {
+    margin-top: 26px;
+    max-width: 560px;
+  }
+  .status {
+    margin-top: 40px;
+    padding: 32px;
+    border-radius: 20px;
+    box-shadow: inset 0 0 0 0.5px rgba(244, 237, 220, 0.25);
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 19px;
+  }
+  .status a {
+    color: var(--night-gold);
+    text-decoration: underline;
+  }
+
+  .plan {
+    margin-top: 44px;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    counter-reset: step;
+  }
+  .plan a {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(244, 237, 220, 0.62);
+  }
+  .plan a:hover {
+    color: var(--night-gold);
+  }
+
+  .text {
+    margin-top: 28px;
+  }
+  .step {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    gap: 10px 40px;
+    padding: 30px 0;
+    border-top: 0.5px solid rgba(244, 237, 220, 0.2);
+    scroll-margin-top: 90px;
+  }
+  .meta h2 {
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--night-gold);
+  }
+  .ref {
+    margin-top: 6px;
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 17px;
+    color: rgba(244, 237, 220, 0.7);
+  }
+  .body {
+    grid-column: span 2;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .body p {
+    font-family: var(--serif);
+    font-size: 25px;
+    line-height: 1.45;
+    white-space: pre-line;
+    text-wrap: pretty;
+  }
+  .body .ant {
+    font-style: italic;
+    color: var(--night-gold);
+  }
+  .body .sub {
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 18px;
+    color: rgba(244, 237, 220, 0.72);
+  }
+  .source {
+    margin-top: 20px;
+    padding-top: 30px;
+    border-top: 0.5px solid rgba(244, 237, 220, 0.2);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(244, 237, 220, 0.6);
+  }
+  .source span {
+    color: var(--night-gold);
+  }
+  .source a {
+    color: inherit;
+    text-decoration: underline;
+  }
+  .more {
+    margin-top: 18px;
+  }
+  .more a {
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 19px;
+    color: var(--night-gold);
+  }
+
+  @media (max-width: 599px) {
+    .body p {
+      font-size: 22px;
+    }
+  }
+</style>

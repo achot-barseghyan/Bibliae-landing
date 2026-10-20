@@ -15,6 +15,10 @@ interface Props {
   lang?: 'fr' | 'en';
   /** Versions dans d'autres langues (balises hreflang). */
   alternates?: { hreflang: string; href: string }[];
+  /** Données structurées propres à la page (schema.org), ajoutées à celles du site. */
+  schema?: Record<string, unknown>[];
+  /** Couleur de la barre du navigateur mobile. */
+  themeColor?: string;
 }
 
 const {
@@ -26,6 +30,8 @@ const {
   noindex = false,
   lang = 'fr',
   alternates = [],
+  schema = [],
+  themeColor = '#15120E',
 } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname.replace(/(.)\/$/, '$1'), SITE_URL).href;
@@ -72,8 +78,9 @@ const jsonLd = appSchema
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonical} />
-    <meta name="theme-color" content="#15120E" />
+    {/* Pas de canonical sur une page noindex (les jours ?date=…) : deux signaux contradictoires pour Google */}
+    {!noindex && <link rel="canonical" href={canonical} />}
+    <meta name="theme-color" content={themeColor} />
     {noindex && <meta name="robots" content="noindex" />}
     {alternates.map((a) => <link rel="alternate" hreflang={a.hreflang} href={a.href} />)}
 
@@ -104,6 +111,8 @@ const jsonLd = appSchema
     <script is:inline>document.documentElement.classList.add('js');</script>
 
     {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+    {/* « < » échappé : les textes viennent de l'API AELF et ne doivent pas pouvoir fermer la balise */}
+    {schema.length > 0 && <script type="application/ld+json" set:html={JSON.stringify(schema).replace(/</g, '\\u003c')} />}
   </head>
   <body>
     <a class="skip-link" href="#contenu">{lang === 'en' ? 'Skip to content' : 'Aller au contenu'}</a>

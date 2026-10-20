@@ -1,12 +1,25 @@
 ---
-// Aujourd'hui : intitulé du jour, roue de l'année liturgique, semaine. Rempli par page.ts.
+// Aujourd'hui : intitulé du jour, roue de l'année liturgique, semaine.
+// Le serveur pose le texte du jour (lisible par Google) ; page.ts anime et permet de changer de jour.
+import type { Info } from '../../scripts/liturgie/aelf';
+import { COL, TINT, liturgicalYear, monthName, parse, title, weekdayName } from '../../scripts/liturgie/calendar';
 import { stars } from '../../scripts/liturgie/hours';
 
+interface Props {
+  date: string;
+  info: Info | null;
+}
+const { date, info } = Astro.props;
+const d = parse(date);
+const t = info ? title(info, d) : null;
+const y = liturgicalYear(d);
+const color = info?.couleur ?? 'vert';
+const dateLine = `${weekdayName(d)} ${d.getUTCDate()} ${monthName(d)} ${d.getUTCFullYear()}${info?.couleur ? ` · ${info.couleur}` : ''}`;
 const sky = stars(31, 60, 90);
 ---
 
 <section id="jour" class="day" aria-labelledby="day-title" data-day>
-  <div class="tint" data-day-tint aria-hidden="true"></div>
+  <div class="tint" data-day-tint style={`background-color:${TINT[color] ?? TINT.vert}`} aria-hidden="true"></div>
   <div class="stars" aria-hidden="true">
     {sky.map((s) => <span style={`left:${s.x.toFixed(1)}%;top:${s.y.toFixed(1)}%;width:${s.z.toFixed(2)}px;height:${s.z.toFixed(2)}px;animation-duration:${s.d.toFixed(2)}s;animation-delay:${s.delay.toFixed(2)}s`} />)}
   </div>
@@ -15,15 +28,16 @@ const sky = stars(31, 60, 90);
   <div class="grid">
     <div class="id" data-day-id>
       <p class="badge" data-in="1">
-        <span class="dot" data-day-color aria-hidden="true"></span>
-        <span data-day-date>Aujourd'hui</span>
+        <span class="dot" data-day-color style={`background:${COL[color] ?? COL.vert}`} aria-hidden="true"></span>
+        <span data-day-date>{dateLine}</span>
       </p>
-      <h1 id="day-title">
-        <span class="mask"><span class="l" data-line="0"><span data-day-l1>La liturgie</span><span class="sup" data-day-sup></span></span></span>
-        <span class="mask"><span class="l accent" data-line="1" data-day-l2>du jour</span></span>
+      <h1 id="day-title" class:list={{ long: !!t && t.l1.length + t.l2.length > 44 }}>
+        <span class="sr-only">Liturgie du jour : </span>
+        <span class="mask"><span class="l" data-line="0"><span data-day-l1>{t?.l1 ?? 'La liturgie'}</span><span class="sup" data-day-sup>{t?.sup}</span></span></span>
+        <span class="mask"><span class="l accent" data-line="1" data-day-l2>{t ? t.l2 : 'du jour'}</span></span>
       </h1>
-      <p class="rank" data-in="2" data-day-rank>Lectures de la messe et liturgie des heures</p>
-      <p class="memorial" data-in="2" data-day-memorial hidden></p>
+      <p class="rank" data-in="2" data-day-rank>{t?.rank ?? 'Lectures de la messe et liturgie des heures'}</p>
+      <p class="memorial" data-in="2" data-day-memorial hidden={!t?.memorial}>{t?.memorial}</p>
       <noscript>
         <p class="noscript">
           Les textes du jour sont chargés depuis l'AELF : activez JavaScript, ou lisez-les sur <a href="https://www.aelf.org">aelf.org</a>.
@@ -58,9 +72,9 @@ const sky = stars(31, 60, 90);
         </svg>
         <div data-wheel-labels></div>
         <div class="center">
-          <div class="num" data-day-num>&nbsp;</div>
-          <div class="month" data-day-month></div>
-          <div class="year" data-day-year></div>
+          <div class="num" data-day-num>{d.getUTCDate()}</div>
+          <div class="month" data-day-month>{monthName(d)}</div>
+          <div class="year" data-day-year>Année {y.cycle} · {y.parity}</div>
         </div>
       </div>
     </div>

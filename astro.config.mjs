@@ -1,17 +1,23 @@
 // @ts-check
 import { defineConfig, envField } from 'astro/config';
-import sitemap from '@astrojs/sitemap';
+import sitemap, { ChangeFreqEnum } from '@astrojs/sitemap';
 import vercel from '@astrojs/vercel';
 
 export default defineConfig({
   site: 'https://bibliae.app',
   trailingSlash: 'ignore',
-  // Tout reste statique ; seule /api/contact tourne côté serveur (fonction Vercel)
+  // Tout reste statique, sauf /api/contact et les pages /liturgie (textes du jour rendus pour Google, cache jusqu'à minuit)
   adapter: vercel(),
   integrations: [
     sitemap({
+      // Pages des heures : route dynamique /liturgie/[heure], que le plugin ne peut pas énumérer seul
+      customPages: ['office-des-lectures', 'laudes', 'tierce', 'sexte', 'none', 'vepres', 'complies'].map((p) => `https://bibliae.app/liturgie/${p}`),
       // Mêmes URL que les balises canonical (sans « / » final, sauf l'accueil)
-      serialize: (item) => ({ ...item, url: item.url.replace(/(\.app\/.+)\/$/, '$1') }),
+      serialize: (item) => {
+        const url = item.url.replace(/(\.app\/.+)\/$/, '$1');
+        // Le contenu change chaque jour
+        return url.includes('/liturgie') ? { ...item, url, changefreq: ChangeFreqEnum.DAILY, priority: url.endsWith('/messe') ? 0.9 : 0.8 } : { ...item, url };
+      },
     }),
   ],
   build: { inlineStylesheets: 'auto' },

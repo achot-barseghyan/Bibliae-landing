@@ -1,4 +1,6 @@
 ---
+// Liturgie du jour. Rendue côté serveur (texte du jour lisible par Google, cache jusqu'à minuit à Paris),
+// puis animée et rendue interactive par scripts/liturgie/page.ts.
 import '@fontsource/cormorant-garamond/latin-300-italic.css';
 import '@fontsource/cormorant-garamond/latin-600.css';
 import Base from '../layouts/Base.astro';
@@ -8,18 +10,50 @@ import LwMass from '../components/liturgie/LwMass.astro';
 import LwHours from '../components/liturgie/LwHours.astro';
 import LwReaders from '../components/liturgie/LwReaders.astro';
 import LwFooter from '../components/liturgie/LwFooter.astro';
+import { getInfo, getMasses, type Info, type Mass } from '../scripts/liturgie/aelf';
+import { cap, title as dayTitle } from '../scripts/liturgie/calendar';
+import { cache, clip, gospelOf, longDate, pageDate, schema, unquote } from '../scripts/liturgie/server';
+
+export const prerender = false;
+
+const { date, d, isToday } = pageDate(Astro.url);
+const dateLabel = longDate(d);
+
+let info: Info | null = null;
+let masses: Mass[] = [];
+const [i, ms] = await Promise.allSettled([getInfo(date), getMasses(date)]);
+if (i.status === 'fulfilled') info = i.value;
+if (ms.status === 'fulfilled') masses = ms.value.filter((m) => m.readings.length);
+// La page reste utile sans les données (le navigateur réessaie) : on la cache juste moins longtemps
+cache(Astro.response.headers, !!info && masses.length > 0);
+
+const t = info ? dayTitle(info, d) : null;
+const gospel = gospelOf(masses[0]);
+const pageTitle = isToday ? `Liturgie du jour — ${cap(dateLabel)} | Bibliae` : `Liturgie du ${dateLabel} | Bibliae`;
+const description = clip(
+  `Liturgie du ${dateLabel} : ${gospel ? `Évangile ${gospel.ref} « ${unquote(gospel.title)} », ` : ''}lectures de la messe, laudes, vêpres et complies. Textes officiels AELF, gratuits.`,
+);
 ---
 
 <Base
-  title="Liturgie du jour — lectures de la messe et liturgie des heures · Bibliae"
-  description="Les lectures de la messe et la liturgie des heures de chaque jour, des laudes aux complies, selon le calendrier liturgique. Textes officiels de l'AELF, gratuits et sans compte."
-  ogTitle="La liturgie du jour, ouverte à tous"
-  ogDescription="Les lectures de la messe et la liturgie des heures de chaque jour, dans votre navigateur."
+  title={pageTitle}
+  description={description}
+  ogTitle={isToday ? `La liturgie du jour — ${dateLabel}` : `Liturgie du ${dateLabel}`}
+  ogDescription={description}
+  noindex={!isToday}
+  themeColor="#0F1526"
+  schema={schema({
+    url: '/liturgie',
+    name: isToday ? 'Liturgie du jour' : `Liturgie du ${dateLabel}`,
+    description,
+    date,
+    crumbs: [['Accueil', '/'], ['Liturgie du jour', '/liturgie']],
+  })}
 >
   <LwNav />
   <main id="contenu">
-    <LwDay />
-    <LwMass />
+    <LwDay date={date} info={info} />
+    <LwMass date={date} isToday={isToday} masses={masses} t={t} />
     <LwHours />
   </main>
   <LwFooter />

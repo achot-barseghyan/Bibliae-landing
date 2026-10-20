@@ -64,8 +64,8 @@ const sky = stars(77, 70, 100);
           <p class="hr-name" data-hr-name>{HOURS[0].name}</p>
           <p class="tag" data-hr-tag>{HOURS[0].tag}</p>
           <div class="btns">
-            <button class="pray" type="button" data-pray><span>Prier <span data-hr-call>{HOURS[0].call}</span></span><span class="arrow" aria-hidden="true">→</span></button>
-            <button class="full" type="button" data-full>Tout l'office</button>
+            <a class="pray" href={`/liturgie/${HOURS[0].slug}`} data-pray><span>Prier <span data-hr-call>{HOURS[0].call}</span></span><span class="arrow" aria-hidden="true">→</span></a>
+            <a class="full" href={`/liturgie/${HOURS[0].slug}`} data-full>Tout l'office</a>
           </div>
         </div>
         <dl class="parts" data-hr-parts></dl>

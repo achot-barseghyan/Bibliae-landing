@@ -1,5 +1,33 @@
 ---
-// Lecture du jour : sommaire fixe à gauche, cartes des lectures, Évangile révélé mot à mot. Rempli par page.ts.
+// Lecture du jour : sommaire fixe à gauche, cartes des lectures, Évangile révélé mot à mot.
+// Rendu par le serveur pour la date de la page ; page.ts reprend la main pour les autres jours et la liseuse.
+import type { Mass, Reading } from '../../scripts/liturgie/aelf';
+import { monthName, parse, weekdayName, type Title } from '../../scripts/liturgie/calendar';
+
+interface Props {
+  date: string;
+  isToday: boolean;
+  masses: Mass[];
+  t: Title | null;
+}
+const { date, isToday, masses, t } = Astro.props;
+const d = parse(date);
+const m = masses[0];
+const evI = m ? m.readings.map((r) => r.type).lastIndexOf('evangile') : -1;
+const ev = m && evI >= 0 ? m.readings[evI] : null;
+const rest = m ? m.readings.filter((_, i) => i !== evI) : [];
+const all = ev ? [...rest, ev] : rest;
+const MARKS: Record<string, string> = { lecture_1: 'I', lecture_2: 'II', lecture_3: 'III', lecture_4: 'IV', lecture_5: 'V', lecture_6: 'VI', lecture_7: 'VII', psaume: '℟', cantique: '℟' };
+const quote = (r: Reading) => (r.type === 'psaume' || r.type === 'cantique' ? r.refrain : r.title) || r.paras[0]?.split('\n')[0] || '';
+const words = ev
+  ? quote(ev)
+      .replace(/« /g, '« ')
+      .replace(/ ([?!:;»])/g, ' $1')
+      .split(/\s+/)
+      .filter(Boolean)
+  : [];
+const short = `${weekdayName(d)} ${d.getUTCDate()} ${monthName(d)} · ${t?.rank.split(' · ')[0] || 'Messe'}`;
+const messeHref = isToday ? '/liturgie/messe' : `/liturgie/messe?date=${date}`;
 ---
 
 <section id="lecture" class="mass" aria-labelledby="mass-title">
@@ -7,29 +35,54 @@
     <div class="side">
       <p class="eyebrow" data-rv="0">Lecture du jour</p>
       <h2 id="mass-title" data-rv="1">La messe</h2>
-      <p class="short" data-rv="2" data-mass-short>&nbsp;</p>
+      <p class="short" data-rv="2" data-mass-short>{short}</p>
       <div class="choice" data-rv="2" data-mass-choice role="group" aria-label="Choisir la messe" hidden></div>
       <nav class="toc" data-rv="3" aria-label="Lectures de la messe">
         <span class="rail" aria-hidden="true"></span>
         <span class="thread" data-thread aria-hidden="true"></span>
-        <ol data-toc></ol>
+        <ol data-toc>
+          {
+            all.map((r, i) => (
+              <li>
+                <a href={i === rest.length && ev ? '#r-ev' : `#r-${i}`}>
+                  <span class="t-dot" aria-hidden="true" />
+                  <span class="t-label">{r.label}</span>
+                  <span class="t-ref">{r.ref}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ol>
       </nav>
-      <button class="read" type="button" data-rv="4" data-open-mass disabled>Lire la messe <span class="arrow" aria-hidden="true">→</span></button>
+      <a class="read" href={messeHref} data-rv="4" data-open-mass>Lire la messe <span class="arrow" aria-hidden="true">→</span></a>
     </div>
 
-    <div class="cards" data-readings>
-      <p class="status" data-mass-status>Chargement des lectures…</p>
-      <div data-cards></div>
+    <div class="cards" data-readings data-date={m ? date : undefined}>
+      <p class="status" data-mass-status>{m ? '' : 'Chargement des lectures…'}</p>
+      <div data-cards>
+        {
+          rest.map((r, i) => (
+            <article class="card" id={`r-${i}`} data-read data-rv="0">
+              {MARKS[r.type] && <span class="c-mark" aria-hidden="true">{MARKS[r.type]}</span>}
+              <div class="c-head">
+                <h3 class="c-label">{r.label}</h3>
+                <span class="c-ref">{r.ref}</span>
+              </div>
+              <p class="c-q">{quote(r)}</p>
+            </article>
+          ))
+        }
+      </div>
 
-      <article id="r-ev" class="gospel" data-rv="0" data-read hidden>
+      <article id="r-ev" class="gospel" data-rv="0" data-read hidden={!ev}>
         <span class="cross" aria-hidden="true">✝</span>
         <div class="head">
-          <span class="label">Évangile</span>
-          <span class="ref" data-gospel-ref></span>
+          <h3 class="label">Évangile du jour</h3>
+          <span class="ref" data-gospel-ref>{ev?.ref}</span>
         </div>
-        <p class="words" data-gospel-words></p>
+        <p class="words" data-gospel-words>{words.map((w) => <span>{w}</span>)}</p>
         <div class="btns">
-          <button class="gbtn" type="button" data-open-gospel>Lire l'Évangile <span class="arrow" aria-hidden="true">→</span></button>
+          <a class="gbtn" href={`${messeHref}#evangile`} data-open-gospel>Lire l'Évangile <span class="arrow" aria-hidden="true">→</span></a>
           <a class="gbtn ghost" href="#heures">Prier les heures</a>
         </div>
       </article>
