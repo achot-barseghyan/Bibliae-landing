@@ -17,6 +17,10 @@ function h<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string, 
   return el;
 }
 
+/** Isole ℣ / ℟ dans des spans pour les colorer. */
+const marks = (t: string) => t.split(/([℣℟])/).map((x) => (x === '℣' || x === '℟' ? h('span', { class: 'o-mark' }, x) : x));
+const ant = (cls: string, t: string) => h('p', { class: cls }, h('span', { class: 'o-ant' }, 'Antienne :'), ` ${t}`);
+
 /* ---------- État ---------- */
 
 const today = todayIso();
@@ -537,27 +541,59 @@ try {
 } catch {
   /* stockage indisponible : taille par défaut */
 }
-function applyFs() {
+let ff = 0;
+try {
+  const v = Number(localStorage.getItem('bibliae-liturgie-ff'));
+  if (v === 0 || v === 1 || v === 2) ff = v;
+} catch {
+  /* stockage indisponible : police par défaut */
+}
+/** Applique taille (fs-*) et police (ff-*) aux liseuses et reflète le choix dans les menus « Aa ». */
+function applyTypo() {
   [mReader, oReader].forEach((r) => {
     if (!r) return;
-    r.classList.remove('fs-0', 'fs-1', 'fs-2');
-    r.classList.add(`fs-${fs}`);
+    r.classList.remove('fs-0', 'fs-1', 'fs-2', 'ff-0', 'ff-1', 'ff-2');
+    r.classList.add(`fs-${fs}`, `ff-${ff}`);
   });
-  $$<HTMLButtonElement>('[data-fs="down"]').forEach((b) => (b.disabled = fs === 0));
-  $$<HTMLButtonElement>('[data-fs="up"]').forEach((b) => (b.disabled = fs === 2));
+  $$('[data-fs]').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.fs) === fs)));
+  $$('[data-ff]').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.ff) === ff)));
 }
-$$('[data-fs]').forEach((b) =>
-  b.addEventListener('click', () => {
-    fs = Math.max(0, Math.min(2, fs + (b.dataset.fs === 'up' ? 1 : -1)));
-    try {
-      localStorage.setItem('bibliae-liturgie-fs', String(fs));
-    } catch {
-      /* rien */
-    }
-    applyFs();
-  }),
-);
-applyFs();
+function saveTypo() {
+  try {
+    localStorage.setItem('bibliae-liturgie-fs', String(fs));
+    localStorage.setItem('bibliae-liturgie-ff', String(ff));
+  } catch {
+    /* rien */
+  }
+  applyTypo();
+}
+$$('[data-fs]').forEach((b) => b.addEventListener('click', () => ((fs = Number(b.dataset.fs)), saveTypo())));
+$$('[data-ff]').forEach((b) => b.addEventListener('click', () => ((ff = Number(b.dataset.ff)), saveTypo())));
+applyTypo();
+
+/** Ferme le menu « Aa » ouvert ; renvoie true s'il y en avait un. */
+function closeTypo(focus = false) {
+  const open = $$('[data-typo-menu]').find((m) => !m.hidden);
+  if (!open) return false;
+  open.hidden = true;
+  const btn = $<HTMLButtonElement>('[data-typo-btn]', open.parentElement!)!;
+  btn.setAttribute('aria-expanded', 'false');
+  if (focus) btn.focus();
+  return true;
+}
+$$('[data-typo]').forEach((t) => {
+  const btn = $('[data-typo-btn]', t)!, menu = $('[data-typo-menu]', t)!;
+  btn.addEventListener('click', () => {
+    const show = menu.hidden;
+    closeTypo();
+    menu.hidden = !show;
+    btn.setAttribute('aria-expanded', String(show));
+    if (show) $<HTMLButtonElement>('button[aria-pressed="true"]', menu)?.focus();
+  });
+});
+addEventListener('click', (e) => {
+  if (!(e.target as Element).closest?.('[data-typo]')) closeTypo();
+});
 
 function openReader(r: HTMLElement) {
   opener = document.activeElement as HTMLElement | null;
@@ -576,7 +612,7 @@ $$('[data-close]').forEach((b) => b.addEventListener('click', closeReader));
 addEventListener('keydown', (e) => {
   const open = [mReader, oReader].find((r) => r && !r.hidden);
   if (!open) return;
-  if (e.key === 'Escape') return closeReader();
+  if (e.key === 'Escape') return closeTypo(true) || closeReader();
   if (open === oReader && oMode === 'guide' && !(e.target instanceof HTMLButtonElement && e.key === ' ')) {
     if (e.key === 'ArrowRight') go(1);
     if (e.key === 'ArrowLeft') go(-1);
@@ -750,8 +786,8 @@ function renderOffice() {
         h('p', { class: 's-hour' }, hr.name),
         h('p', { class: 's-k' }, s.k),
         s.ref ? h('p', { class: 's-ref' }, s.ref) : '',
-        s.ant ? h('p', { class: 's-ant' }, `Ant. ${s.ant}`) : '',
-        big ? h('p', { class: 's-big' }, s.paras[0]) : h('div', { class: 's-long' }, ...s.paras.map((p) => h('p', {}, p))),
+        s.ant ? ant('s-ant', s.ant) : '',
+        big ? h('p', { class: 's-big' }, ...marks(s.paras[0])) : h('div', { class: 's-long' }, ...s.paras.map((p) => h('p', {}, ...marks(p)))),
         s.sub ? h('p', { class: 's-sub' }, s.sub) : '',
       );
       if (st.parentElement) st.parentElement.scrollTop = 0;
@@ -780,7 +816,7 @@ function renderOffice() {
               'div',
               { class: 'f-step' },
               h('div', { class: 'f-meta' }, h('span', { class: 'f-k' }, s.k), s.ref ? h('span', { class: 'f-ref' }, s.ref) : null),
-              h('div', { class: 'f-body' }, s.ant ? h('p', { class: 'f-ant' }, `Ant. ${s.ant}`) : null, ...s.paras.map((p) => h('p', {}, p)), s.sub ? h('span', { class: 'f-sub' }, s.sub) : null),
+              h('div', { class: 'f-body' }, s.ant ? ant('f-ant', s.ant) : null, ...s.paras.map((p) => h('p', {}, ...marks(p))), s.sub ? h('span', { class: 'f-sub' }, s.sub) : null),
             ),
           )
         : [h('p', { class: 'f-sub' }, "Chargement de l'office…")]),

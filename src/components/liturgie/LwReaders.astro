@@ -1,12 +1,9 @@
 ---
 // Liseuses plein écran : la messe (texte intégral) et l'office (pas à pas ou texte intégral). Remplies par page.ts.
 import { HOURS, stars } from '../../scripts/liturgie/hours';
+import LwTypo from './LwTypo.astro';
 
 const sky = stars(77, 70, 100);
-const fsButtons = (dark: boolean) => [
-  { dir: 'down', label: 'Réduire le texte', size: dark ? 16 : 17 },
-  { dir: 'up', label: 'Agrandir le texte', size: dark ? 23 : 25 },
-];
 ---
 
 <div class="reader mreader" role="dialog" aria-modal="true" aria-labelledby="m-title" data-mreader hidden>
@@ -21,9 +18,7 @@ const fsButtons = (dark: boolean) => [
           <p class="bar-s" data-m-short></p>
         </div>
       </div>
-      <div class="fs">
-        {fsButtons(false).map((b) => <button type="button" data-fs={b.dir} aria-label={b.label} style={`font-size:${b.size}px`}>A</button>)}
-      </div>
+      <LwTypo />
     </div>
     <div class="m-prog" data-m-prog></div>
   </div>
@@ -70,9 +65,7 @@ const fsButtons = (dark: boolean) => [
           <button type="button" data-mode="guide" aria-pressed="true">Pas à pas</button>
           <button type="button" data-mode="full" aria-pressed="false">Texte intégral</button>
         </div>
-        <div class="fs">
-          {fsButtons(true).map((b) => <button type="button" data-fs={b.dir} aria-label={b.label} style={`font-size:${b.size}px`}>A</button>)}
-        </div>
+        <LwTypo dark />
       </div>
     </div>
     <div class="o-hours" role="group" aria-label="Choisir l'heure">
@@ -116,22 +109,44 @@ const fsButtons = (dark: boolean) => [
     position: fixed;
     inset: 0;
     z-index: 100;
-    --fs-text: 27px;
-    --fs-big: clamp(32px, 4.2vw, 56px);
-    --fs-body: 26px;
+    /* --k compense la hauteur d'x des polices plus grandes que Cormorant. */
+    --k: 1;
+    --fs-text: calc(27px * var(--k));
+    --fs-big: calc(clamp(32px, 4.2vw, 56px) * var(--k));
+    --fs-body: calc(26px * var(--k));
   }
   .reader[hidden] {
     display: none;
   }
   .reader:global(.fs-0) {
-    --fs-text: 23px;
-    --fs-big: clamp(28px, 3.4vw, 44px);
-    --fs-body: 22px;
+    --fs-text: calc(23px * var(--k));
+    --fs-big: calc(clamp(28px, 3.4vw, 44px) * var(--k));
+    --fs-body: calc(22px * var(--k));
   }
   .reader:global(.fs-2) {
-    --fs-text: 32px;
-    --fs-big: clamp(36px, 5vw, 68px);
-    --fs-body: 31px;
+    --fs-text: calc(32px * var(--k));
+    --fs-big: calc(clamp(36px, 5vw, 68px) * var(--k));
+    --fs-body: calc(31px * var(--k));
+  }
+
+  /* Police de lecture : on redéfinit les familles dans les zones de texte seulement. */
+  .reader:global(.ff-1) {
+    --k: 0.92;
+  }
+  .reader:global(.ff-2) {
+    --k: 0.8;
+  }
+  .reader:global(.ff-1) .m-article,
+  .reader:global(.ff-1) .o-step,
+  .reader:global(.ff-1) .o-full-inner {
+    --serif: 'EB Garamond', serif;
+    --serif-text: 'EB Garamond', serif;
+  }
+  .reader:global(.ff-2) .m-article,
+  .reader:global(.ff-2) .o-step,
+  .reader:global(.ff-2) .o-full-inner {
+    --serif: 'Inter', system-ui, sans-serif;
+    --serif-text: 'Inter', system-ui, sans-serif;
   }
 
   .bar-inner {
@@ -182,28 +197,6 @@ const fsButtons = (dark: boolean) => [
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .fs {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  .fs button {
-    width: 44px;
-    height: 44px;
-    border: 0;
-    border-radius: 50%;
-    background: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-family: var(--serif);
-    color: inherit;
-  }
-  .fs button:disabled {
-    opacity: 0.35;
-    cursor: default;
-  }
   .arrow {
     font-family: var(--serif);
     font-size: 20px;
@@ -229,8 +222,7 @@ const fsButtons = (dark: boolean) => [
   .mreader .close {
     box-shadow: inset 0 0 0 0.5px rgba(35, 32, 26, 0.4);
   }
-  .mreader .close:hover,
-  .mreader .fs button:hover:not(:disabled) {
+  .mreader .close:hover {
     background: rgba(35, 32, 26, 0.06);
   }
   .mreader .bar-k {
@@ -596,8 +588,7 @@ const fsButtons = (dark: boolean) => [
   .oreader .close {
     box-shadow: inset 0 0 0 0.5px rgba(244, 237, 220, 0.45);
   }
-  .oreader .close:hover,
-  .oreader .fs button:hover:not(:disabled) {
+  .oreader .close:hover {
     background: rgba(244, 237, 220, 0.08);
   }
   .oreader .bar-k {
@@ -739,6 +730,12 @@ const fsButtons = (dark: boolean) => [
     font-style: italic;
     color: var(--night-gold);
     text-wrap: balance;
+  }
+  .o-step :global(.o-mark),
+  .o-full :global(.o-mark),
+  .o-step :global(.o-ant),
+  .o-full :global(.o-ant) {
+    color: var(--night-oxblood);
   }
   .o-step :global(.s-ant) {
     margin-top: 22px;

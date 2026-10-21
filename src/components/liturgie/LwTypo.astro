@@ -1,0 +1,164 @@
+---
+// Menu « Aa » des liseuses : choix de la police et de la taille du texte. Piloté par page.ts.
+interface Props {
+  dark?: boolean;
+}
+const { dark = false } = Astro.props;
+const fonts = [
+  { name: 'Cormorant', css: "'Cormorant Garamond', serif" },
+  { name: 'Garamond', css: "'EB Garamond', serif" },
+  { name: 'Sans-serif', css: "'Inter', system-ui, sans-serif" },
+];
+const sizes = [
+  { label: 'Petit', px: 15 },
+  { label: 'Moyen', px: 19 },
+  { label: 'Grand', px: 24 },
+];
+---
+
+<div class:list={['typo', { dark }]} data-typo>
+  <button type="button" class="typo-btn" data-typo-btn aria-haspopup="true" aria-expanded="false" aria-label="Police et taille du texte" title="Police et taille du texte">
+    Aa
+  </button>
+  <div class="typo-menu" data-typo-menu hidden>
+    <p class="typo-k">Police</p>
+    <div class="typo-fonts" role="group" aria-label="Police">
+      {
+        fonts.map((f, i) => (
+          <button type="button" data-ff={i} aria-pressed="false" style={`font-family:${f.css}`}>
+            <span class="typo-aa">Aa</span>
+            <span class="typo-name">{f.name}</span>
+          </button>
+        ))
+      }
+    </div>
+    <p class="typo-k">Taille</p>
+    <div class="typo-sizes" role="group" aria-label="Taille du texte">
+      {
+        sizes.map((s, i) => (
+          <button type="button" data-fs={i} aria-pressed="false" aria-label={s.label} title={s.label}>
+            <span style={`font-size:${s.px}px`}>A</span>
+          </button>
+        ))
+      }
+    </div>
+  </div>
+</div>
+
+<style>
+  .typo {
+    position: relative;
+    --t-ink: var(--ink);
+    --t-bg: var(--paper);
+    --t-line: rgba(35, 32, 26, 0.16);
+    --t-hover: rgba(35, 32, 26, 0.06);
+    --t-on: var(--oxblood);
+    --t-on-ink: var(--paper);
+  }
+  .typo.dark {
+    --t-ink: #f4eddc;
+    --t-bg: #161d33;
+    --t-line: rgba(240, 213, 142, 0.22);
+    --t-hover: rgba(244, 237, 220, 0.08);
+    --t-on: var(--night-gold);
+    --t-on-ink: var(--night);
+  }
+  .typo-btn {
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-family: var(--serif);
+    font-size: 20px;
+    color: inherit;
+    transition: background 0.3s;
+  }
+  .typo-btn:hover,
+  .typo-btn[aria-expanded='true'] {
+    background: var(--t-hover);
+  }
+  .typo-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 5;
+    width: 264px;
+    max-width: calc(100vw - 32px);
+    padding: 14px;
+    border-radius: 16px;
+    background: var(--t-bg);
+    color: var(--t-ink);
+    box-shadow:
+      0 0 0 0.5px var(--t-line),
+      0 18px 40px -12px rgba(0, 0, 0, 0.35);
+  }
+  .typo-menu[hidden] {
+    display: none;
+  }
+  .typo-k {
+    font-family: var(--sans);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+  .typo-k + div {
+    margin-top: 8px;
+  }
+  div + .typo-k {
+    margin-top: 16px;
+  }
+  .typo-fonts,
+  .typo-sizes {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  .typo-menu button {
+    border: 0;
+    border-radius: 10px;
+    background: none;
+    box-shadow: inset 0 0 0 0.5px var(--t-line);
+    color: inherit;
+    cursor: pointer;
+    transition:
+      background 0.2s,
+      color 0.2s;
+  }
+  .typo-menu button:hover {
+    background: var(--t-hover);
+  }
+  .typo-menu button[aria-pressed='true'] {
+    background: var(--t-on);
+    color: var(--t-on-ink);
+    box-shadow: none;
+  }
+  .typo-fonts button {
+    padding: 10px 4px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .typo-aa {
+    font-size: 22px;
+    line-height: 1;
+  }
+  .typo-name {
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .typo-sizes button {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+  }
+</style>
