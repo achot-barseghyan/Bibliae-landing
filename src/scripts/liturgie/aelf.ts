@@ -1,7 +1,8 @@
 // Accès à l'API AELF (textes liturgiques officiels, forme ordinaire) et mise en forme des données.
 // Tous les textes sortent en texte brut : on ne réinjecte jamais le HTML de l'API dans la page.
 
-const API = 'https://api.aelf.org/v1';
+// Serveur : appel direct ; navigateur : relais /api/aelf (l'AELF n'envoie pas d'en-tête CORS)
+const API = import.meta.env.SSR ? 'https://api.aelf.org/v1' : '/api/aelf';
 const ZONE = 'france';
 
 export type Info = {

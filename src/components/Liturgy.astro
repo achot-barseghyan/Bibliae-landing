@@ -111,7 +111,7 @@ const stars = Array.from({ length: 22 }, (_, i) => ({
   };
 
   const iso = new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(now);
-  fetch(`https://api.aelf.org/v1/messes/${iso}/france`)
+  fetch(`/api/aelf/messes/${iso}/france`)
     .then((r) => (r.ok ? (r.json() as Promise<Aelf>) : Promise.reject()))
     .then(({ informations: info = {}, messes = [] }) => {
       const color = info.couleur ?? '';
