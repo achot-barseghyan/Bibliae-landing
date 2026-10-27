@@ -13,3 +13,5 @@ export const SITE_URL = 'https://bibliae.app';
 export const CONTACT_EMAIL = 'contact@bibliae.app';
 /** Page web de la liturgie du jour (lectures de la messe, liturgie des heures). Ancres : #lecture, #heures, #jour. */
 export const LITURGY_URL = '/liturgie';
+/** Page web du chapelet guidé. */
+export const ROSARY_URL = '/chapelet';

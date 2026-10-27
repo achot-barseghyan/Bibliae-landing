@@ -1,0 +1,1435 @@
+---
+// Chapelet guidé. Page statique : le déroulé, les grains et les réglages sont pilotés par scripts/chapelet/page.ts.
+import '@fontsource/cormorant-garamond/latin-600.css';
+import '@fontsource/eb-garamond/latin-500.css';
+import { Image, getImage } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import icon from '../assets/icone/icon-180.png';
+import vert from '../assets/rosaire/vert.png';
+import rouge from '../assets/rosaire/rouge.png';
+import jaune from '../assets/rosaire/jaune.png';
+import bleu from '../assets/rosaire/bleu.png';
+import violet from '../assets/rosaire/violet.png';
+import neutre from '../assets/rosaire/neutre.png';
+import pater from '../assets/rosaire/pater.png';
+import medaille from '../assets/rosaire/medaille.png';
+import crucifix from '../assets/rosaire/crucifix.png';
+import marie from '../assets/rosaire/marie.png';
+import { LITURGY_URL, SITE_URL } from '../config';
+import { GEO, GROUPS, PARTICLES, ROMAN, SETS, T, VH, VW, build, DEFAULT_CFG } from '../scripts/chapelet/data';
+
+// Grains en arrière-plan CSS : une seule version webp, assez grande pour l'écran Retina et le grain agrandi
+const small = (src: ImageMetadata) => getImage({ src, width: 64, format: 'webp' }).then((i) => `url(${i.src})`);
+const beadVars = {
+  '--b-vert': await small(vert),
+  '--b-rouge': await small(rouge),
+  '--b-jaune': await small(jaune),
+  '--b-bleu': await small(bleu),
+  '--b-violet': await small(violet),
+  '--b-neutre': await small(neutre),
+  '--b-pater': await getImage({ src: pater, width: 112, format: 'webp' }).then((i) => `url(${i.src})`),
+};
+
+// Rendu initial : mystères joyeux, première étape ; le script recalcule tout au chargement
+const set = SETS[0];
+const total = build(DEFAULT_CFG).length;
+const pct = (v: number, of: number) => `${(v / of) * 100}%`;
+
+const title = 'Prier le chapelet en ligne — Mystères du jour | Bibliae';
+const description =
+  'Priez le chapelet guidé, grain après grain : les mystères du jour (joyeux, lumineux, douloureux, glorieux), le texte de chaque prière, le fruit du mystère et les clausules. Gratuit, sans inscription.';
+---
+
+<Base
+  title={title}
+  description={description}
+  ogTitle="Prier le chapelet — Bibliae"
+  ogDescription={description}
+  schema={[
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      name: 'Prier le chapelet',
+      url: `${SITE_URL}/chapelet`,
+      inLanguage: 'fr',
+      description,
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Accueil', item: `${SITE_URL}/` },
+        { '@type': 'ListItem', position: 2, name: 'Chapelet', item: `${SITE_URL}/chapelet` },
+      ],
+    },
+  ]}
+>
+  <div class="ch" data-ch>
+    <div class="ch-glow ch-glow-a" aria-hidden="true"></div>
+    <div class="ch-glow ch-glow-b" aria-hidden="true"></div>
+
+    <header class="ch-nav">
+      <nav class="ch-nav-in" aria-label="Navigation">
+        <a class="ch-brand" href="/" aria-label="Bibliae, accueil">
+          <Image src={icon} alt="" width={32} height={32} densities={[1, 2]} loading="eager" />
+          <span>Bibliae</span>
+        </a>
+        <div class="ch-links">
+          <a class="ch-link" href={LITURGY_URL}><span class="ch-dot ch-dot-olive"></span>Liturgie du jour</a>
+          <span class="ch-link is-current" aria-current="page"><span class="ch-dot"></span>Chapelet</span>
+          <button class="ch-cfg-btn" type="button" data-cfg-open aria-controls="ch-cfg" aria-expanded="false">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" aria-hidden="true"><path d="M2 4h7M12 4h2M2 8h2M7 8h7M2 12h9M14 12h0"></path><circle cx="10.5" cy="4" r="1.6"></circle><circle cx="5.5" cy="8" r="1.6"></circle><circle cx="12.5" cy="12" r="1.6"></circle></svg>
+            <span>Personnaliser</span>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <main id="contenu" class="ch-main">
+      <header class="ch-head" data-reveal>
+        <div>
+          <p class="ch-pill"><span class="ch-dot"></span><span data-day>Le chapelet</span></p>
+          <h1 class="ch-h1">Mystères <em data-set-adj>{set.adj}</em></h1>
+        </div>
+        <div class="ch-sets" role="group" aria-label="Choisir les mystères">
+          {
+            SETS.map((s, k) => (
+              <button class:list={['ch-set', { 'is-on': k === 0 }]} type="button" data-set={k} aria-pressed={k === 0 ? 'true' : 'false'}>
+                <span class="ch-set-name">{s.name}</span>
+                <span class="ch-set-days" data-set-days>{s.days}</span>
+              </button>
+            ))
+          }
+        </div>
+      </header>
+
+      <div class="ch-cols">
+        <section class="ch-stage-col" data-reveal data-delay="120" aria-label="Le chapelet">
+          <div class="ch-stage" data-stage style={beadVars}>
+            <div class="ch-rings" aria-hidden="true">
+              <svg class="ch-spin" viewBox="0 0 600 600" fill="none"><circle cx="300" cy="300" r="296" stroke="#B5892E" stroke-width="0.6" opacity="0.28"></circle><circle cx="300" cy="300" r="284" stroke="#B5892E" stroke-width="0.6" opacity="0.25" stroke-dasharray="2 9"></circle><path d="M300 0v30M300 570v30M0 300h30M570 300h30" stroke="#B5892E" stroke-width="0.8" opacity="0.45"></path></svg>
+              <svg class="ch-spin ch-spin-rev" viewBox="0 0 600 600" fill="none"><circle cx="300" cy="300" r="180" stroke="#6B1E23" stroke-width="1" opacity="0.7" stroke-dasharray="1 12"></circle></svg>
+            </div>
+            <div class="ch-breathe" aria-hidden="true"></div>
+
+            <div class="ch-mary" aria-hidden="true">
+              <Image src={marie} alt="" widths={[220, 440]} sizes="(max-width: 600px) 36vw, 200px" loading="eager" />
+            </div>
+
+            {PARTICLES.map((p, k) => <div class="ch-p" aria-hidden="true" style={`left:${p.x}%;top:${p.y}%;width:${p.s}px;height:${p.s}px;animation-duration:${5000 + (k % 5) * 1300}ms;animation-delay:${k * 380}ms`} />)}
+
+            <svg class="ch-thread" viewBox={`0 0 ${VW} ${VH}`} aria-hidden="true">
+              <path d={GEO.loop} class="ch-thread-bg" stroke-linejoin="round"></path>
+              <path d={GEO.pendP} class="ch-thread-bg"></path>
+              <path d={GEO.pendP} pathLength="1" class="ch-thread-lit" data-pend stroke-dasharray="0 1"></path>
+              <path d={GEO.loop} pathLength="1" class="ch-thread-lit" data-loop stroke-linejoin="round" stroke-dasharray="0 1"></path>
+            </svg>
+
+            <div class="ch-halo" data-halo aria-hidden="true">
+              <div class="ch-halo-glow"></div>
+              <div class="ch-halo-ring"></div>
+            </div>
+
+            {
+              GEO.beads.map((b) => (
+                <button
+                  class:list={['ch-bead', { 'is-big': b.big }]}
+                  type="button"
+                  tabindex="-1"
+                  aria-hidden="true"
+                  data-bead={b.id}
+                  data-img={b.big ? 'pater' : b.d !== undefined ? ['vert', 'rouge', 'jaune', 'bleu', 'violet'][b.d] : 'neutre'}
+                  style={`left:${pct(b.x, VW)};top:${pct(b.y, VH)};width:${pct(b.big ? 38 : 18, VW)}`}
+                />
+              ))
+            }
+            <button class="ch-medal" type="button" tabindex="-1" aria-hidden="true" data-medal>
+              <Image src={medaille} alt="" widths={[80, 160]} sizes="72px" loading="eager" />
+            </button>
+            <button class="ch-cross" type="button" tabindex="-1" aria-hidden="true" data-cross>
+              <Image src={crucifix} alt="" widths={[100, 200]} sizes="100px" loading="eager" />
+            </button>
+
+            <div class="ch-flash" data-flash aria-hidden="true">
+              <span class="ch-flash-num" data-flash-num>I</span>
+              <span class="ch-flash-name" data-flash-name>{set.m[0][0]}</span>
+            </div>
+          </div>
+
+          <ul class="ch-legend">
+            <li><Image src={pater} alt="" width={16} height={16} densities={[1, 2]} /><span>Notre Père</span></li>
+            <li>
+              <span class="ch-legend-stack">
+                {[vert, rouge, bleu, violet].map((s) => <Image src={s} alt="" width={13} height={13} densities={[1, 2]} />)}
+              </span>
+              <span>Je vous salue Marie</span>
+            </li>
+            <li><Image src={crucifix} alt="" width={14} densities={[1, 2]} /><span>Credo</span></li>
+            <li><span class="ch-legend-now"></span><span>En cours</span></li>
+            <li><span class="ch-legend-path"></span><span>Chemin parcouru</span></li>
+          </ul>
+        </section>
+
+        <aside class="ch-side" aria-label="Prière en cours">
+          <div class="ch-card ch-progress" data-reveal data-delay="220">
+            <div class="ch-row">
+              <span class="ch-k">Progression</span>
+              <span class="ch-count"><span data-num>1</span><span class="ch-count-of"> / <span data-total>{total}</span></span></span>
+            </div>
+            <div class="ch-bar" role="progressbar" aria-label="Progression du chapelet" aria-valuemin="1" aria-valuemax={total} aria-valuenow="1" data-bar>
+              <div class="ch-bar-fill" data-bar-fill style={`width:${pct(1, total)}`}><div class="ch-shimmer"></div></div>
+            </div>
+            <div class="ch-decades" aria-hidden="true">
+              {[0, 1, 2, 3, 4].map(() => <div class="ch-decade"><div data-decade></div></div>)}
+            </div>
+          </div>
+
+          <div class="ch-card ch-pray" data-reveal data-delay="320">
+            <div class="ch-pray-body" aria-live="polite">
+              <div class="ch-row">
+                <span class="ch-eyebrow" data-eyebrow>{T.signe[0]}</span>
+                <span class="ch-badge" data-badge>Ouverture</span>
+              </div>
+              <div data-text>
+                <h2 class="ch-title" data-title>{T.signe[0]}</h2>
+                <div class="ch-paras" data-paras><p>{T.signe[1]}</p></div>
+                <div class="ch-fruit" data-fruit hidden><span class="ch-fruit-k">Fruit du mystère</span><span class="ch-fruit-v" data-fruit-v></span></div>
+              </div>
+            </div>
+
+            <div class="ch-myst">
+              <div class="ch-row">
+                <span class="ch-k">Les mystères</span>
+                <button class="ch-info-btn" type="button" data-info>Méditer le mystère</button>
+              </div>
+              <ol class="ch-myst-list">
+                {
+                  set.m.map((m, k) => (
+                    <li data-myst={k}>
+                      <button class="ch-myst-row" type="button" data-myst-jump={k}>
+                        <span class="ch-myst-num">{ROMAN[k]}</span>
+                        <span class="ch-myst-name" data-myst-name>{m[0]}</span>
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#E2BE6E" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M2.5 7.4 5.6 10.4 11.5 3.8"></path></svg>
+                      </button>
+                      <div class="ch-myst-info" hidden>
+                        <span class="ch-myst-ref" data-myst-ref>{m[1]}</span>
+                        <span class="ch-myst-med" data-myst-med>{m[3]}</span>
+                        <span class="ch-myst-fruit">Fruit : <em data-myst-fruit>{m[2]}</em></span>
+                      </div>
+                    </li>
+                  ))
+                }
+              </ol>
+            </div>
+          </div>
+
+          <div class="ch-ctrl" data-reveal data-delay="420">
+            <button class="ch-round" type="button" data-prev title="Précédente (←)" aria-label="Prière précédente">
+              <svg width="16" height="12" viewBox="0 0 14 12" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M13 6H1.5M6 1.5 1.5 6 6 10.5"></path></svg>
+            </button>
+            <button class="ch-next" type="button" data-next>
+              <span data-next-label>Suivante</span>
+              <svg width="16" height="12" viewBox="0 0 14 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M1 6h11.5M8 1.5 12.5 6 8 10.5"></path></svg>
+              <span class="ch-sheen" aria-hidden="true"></span>
+            </button>
+            <button class="ch-round" type="button" data-reset title="Recommencer" aria-label="Recommencer le chapelet">
+              <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M12 5.5A5.2 5.2 0 0 0 2.3 4.2M2 1.5v3h3M2 8.5a5.2 5.2 0 0 0 9.7 1.3M12 12.5v-3H9"></path></svg>
+            </button>
+          </div>
+          <p class="ch-keys" data-reveal data-delay="500"><kbd>←</kbd><kbd>→</kbd><span>ou cliquez sur un grain</span></p>
+        </aside>
+      </div>
+    </main>
+
+    <div class="ch-shade" data-cfg-close data-shade></div>
+    <aside class="ch-sheet" id="ch-cfg" data-sheet aria-label="Réglages du chapelet" inert>
+      <div class="ch-sheet-head">
+        <div class="ch-row">
+          <span class="ch-eyebrow">Personnalisation</span>
+          <button class="ch-close" type="button" data-cfg-close aria-label="Fermer les réglages">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M2 2l10 10M12 2 2 12"></path></svg>
+          </button>
+        </div>
+        <h2 class="ch-sheet-title">Réglages du <em>chapelet</em></h2>
+        <div class="ch-sheet-meta">
+          <span class="ch-summary" data-summary></span>
+          <span class="ch-source">D'après prierlechapelet.com</span>
+        </div>
+      </div>
+      <div class="ch-sheet-body">
+        {
+          GROUPS.map(([gt, items]) => (
+            <div class="ch-group">
+              <div class="ch-group-title"><span>{gt}</span><div></div></div>
+              <div class="ch-group-box">
+                {items.map(([k, name, hint]) => (
+                  <button class="ch-opt" type="button" role="switch" aria-checked="false" data-opt={k}>
+                    <span class="ch-opt-text">
+                      <span class="ch-opt-name">{name}</span>
+                      <span class="ch-opt-hint">{hint}</span>
+                    </span>
+                    <span class="ch-switch" aria-hidden="true"><span></span></span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))
+        }
+        <button class="ch-defaults" type="button" data-cfg-reset>Rétablir les réglages par défaut</button>
+      </div>
+    </aside>
+  </div>
+</Base>
+
+<style is:global>
+  body:has([data-ch]) {
+    background: var(--ink-dark);
+  }
+
+  .ch {
+    position: relative;
+    min-height: 100vh;
+    background: var(--ink-dark);
+    color: var(--paper-light);
+    overflow: hidden;
+  }
+  .ch button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
+  .ch-glow {
+    position: absolute;
+    width: 70%;
+    height: 90%;
+    pointer-events: none;
+  }
+  .ch-glow-a {
+    left: -10%;
+    top: -20%;
+    background: radial-gradient(closest-side, rgba(181, 137, 46, 0.2), rgba(107, 30, 35, 0.1) 55%, transparent);
+  }
+  .ch-glow-b {
+    right: -15%;
+    bottom: -30%;
+    background: radial-gradient(closest-side, rgba(107, 30, 35, 0.22), transparent);
+  }
+
+  /* ---------- Navigation ---------- */
+  .ch-nav {
+    position: relative;
+    z-index: 10;
+    border-bottom: 0.5px solid rgba(226, 190, 110, 0.18);
+  }
+  .ch-nav-in {
+    max-width: var(--max);
+    margin: 0 auto;
+    padding: 16px var(--gutter);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .ch-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 24px;
+    color: var(--paper-light);
+  }
+  .ch-brand img {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  }
+  .ch-links {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .ch-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(247, 241, 227, 0.78);
+  }
+  .ch-link:hover,
+  .ch-link.is-current {
+    color: var(--gold-light);
+  }
+  .ch-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--gold-light);
+    box-shadow: 0 0 0 3px rgba(226, 190, 110, 0.3);
+  }
+  .ch-dot-olive {
+    background: #7e8b52;
+    box-shadow: 0 0 0 3px rgba(126, 139, 82, 0.3);
+  }
+  .ch .ch-cfg-btn {
+    min-height: 40px;
+    padding: 0 16px 0 13px;
+    border-radius: 20px;
+    box-shadow: inset 0 0 0 0.5px rgba(226, 190, 110, 0.55);
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gold-light);
+    transition: background 0.3s;
+  }
+  .ch-cfg-btn:hover {
+    background: rgba(226, 190, 110, 0.12);
+  }
+  @media (max-width: 639px) {
+    .ch-link {
+      display: none;
+    }
+  }
+
+  /* ---------- En-tête ---------- */
+  .ch-main {
+    position: relative;
+    z-index: 2;
+    max-width: var(--max);
+    margin: 0 auto;
+    padding: 36px var(--gutter) 56px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+  .ch-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px 40px;
+  }
+  .ch-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 30px;
+    padding: 0 14px;
+    border-radius: 15px;
+    box-shadow: inset 0 0 0 0.5px rgba(226, 190, 110, 0.5);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+  }
+  .ch-pill .ch-dot {
+    box-shadow: none;
+  }
+  .ch-h1 {
+    margin-top: 16px;
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(42px, 5.6vw, 72px);
+    line-height: 0.95;
+    letter-spacing: -0.01em;
+    color: var(--paper-light);
+  }
+  .ch-h1 em {
+    color: var(--gold-light);
+  }
+  .ch-sets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .ch .ch-set {
+    min-height: 52px;
+    padding: 6px 18px;
+    border-radius: 26px;
+    background: rgba(247, 241, 227, 0.04);
+    box-shadow: inset 0 0 0 0.5px rgba(247, 241, 227, 0.25);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    color: rgba(247, 241, 227, 0.78);
+    transition:
+      background 0.4s,
+      color 0.4s;
+  }
+  .ch .ch-set:hover {
+    box-shadow: inset 0 0 0 0.5px var(--gold-light);
+  }
+  .ch .ch-set.is-on {
+    background: var(--gold-light);
+    box-shadow: none;
+    color: var(--ink-dark);
+  }
+  .ch-set-name {
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .ch-set-days {
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 13px;
+    opacity: 0.8;
+    white-space: nowrap;
+  }
+
+  /* ---------- Chapelet ---------- */
+  .ch-cols {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    align-items: stretch;
+  }
+  .ch-stage-col {
+    flex: 1.1 1 480px;
+    min-width: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding-top: 10px;
+  }
+  .ch-stage {
+    position: relative;
+    width: 100%;
+    max-width: 540px;
+    aspect-ratio: 600 / 780;
+    transition: transform 0.5s var(--ease);
+  }
+  .ch-rings {
+    position: absolute;
+    left: 50%;
+    top: 33.6%;
+    width: 96%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+  .ch-spin {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    animation: ch-rot 140s linear infinite;
+  }
+  .ch-spin-rev {
+    animation-duration: 200s;
+    animation-direction: reverse;
+  }
+  @keyframes ch-rot {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  .ch-breathe {
+    position: absolute;
+    left: 50%;
+    top: 33.6%;
+    width: 62%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(226, 190, 110, 0.22), rgba(226, 190, 110, 0.06) 45%, transparent 70%);
+    pointer-events: none;
+    animation: ch-breathe 6s ease-in-out infinite alternate;
+  }
+  @keyframes ch-breathe {
+    from {
+      opacity: 0.6;
+      transform: translate(-50%, -50%) scale(0.94);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1.06);
+    }
+  }
+  .ch-mary {
+    position: absolute;
+    left: 32%;
+    top: 13%;
+    width: 36%;
+    height: 42%;
+    pointer-events: none;
+  }
+  .ch-mary img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    opacity: 0.5;
+    mix-blend-mode: screen;
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 45%, rgba(0, 0, 0, 0.35) 72%, transparent 92%);
+    mask-image: linear-gradient(180deg, #000 0%, #000 45%, rgba(0, 0, 0, 0.35) 72%, transparent 92%);
+    animation: ch-float 7s ease-in-out infinite alternate;
+  }
+  @keyframes ch-float {
+    from {
+      transform: translateY(-5px);
+    }
+    to {
+      transform: translateY(5px);
+    }
+  }
+  .ch-p {
+    position: absolute;
+    border-radius: 50%;
+    background: var(--gold-light);
+    opacity: 0;
+    box-shadow: 0 0 8px rgba(226, 190, 110, 0.9);
+    pointer-events: none;
+    animation: ch-rise 5s ease-in-out infinite;
+  }
+  @keyframes ch-rise {
+    0% {
+      opacity: 0;
+      transform: translateY(0);
+    }
+    40% {
+      opacity: 0.9;
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-46px);
+    }
+  }
+  .ch-thread {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+  .ch-thread path {
+    fill: none;
+  }
+  .ch-thread-bg {
+    stroke: rgba(226, 190, 110, 0.28);
+    stroke-width: 1.3;
+  }
+  .ch-thread-lit {
+    stroke: var(--gold-light);
+    stroke-width: 2;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 4px rgba(226, 190, 110, 0.8));
+    transition: stroke-dasharray 0.7s var(--ease);
+  }
+  .ch-halo {
+    position: absolute;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 1;
+    transition:
+      left 0.7s var(--ease),
+      top 0.7s var(--ease),
+      width 0.7s var(--ease);
+  }
+  .ch-halo-glow {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 214, 120, 0.75), rgba(226, 190, 110, 0.25) 45%, transparent 70%);
+    animation: ch-glow 1.8s ease-in-out infinite alternate;
+  }
+  @keyframes ch-glow {
+    from {
+      transform: scale(0.85);
+      opacity: 0.75;
+    }
+    to {
+      transform: scale(1.15);
+      opacity: 1;
+    }
+  }
+  .ch-halo-ring {
+    position: absolute;
+    inset: 22%;
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px rgba(255, 224, 150, 0.9);
+    animation: ch-ring 2.2s ease-out infinite;
+  }
+  @keyframes ch-ring {
+    from {
+      transform: scale(0.8);
+      opacity: 1;
+    }
+    to {
+      transform: scale(1.9);
+      opacity: 0;
+    }
+  }
+  .ch .ch-bead {
+    position: absolute;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(var(--sc, 1));
+    background: var(--img) center / contain no-repeat;
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5));
+    z-index: 2;
+    transition:
+      filter 0.6s,
+      opacity 0.6s,
+      transform 0.5s cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+  .ch-bead[data-img='vert'] { --img: var(--b-vert); }
+  .ch-bead[data-img='rouge'] { --img: var(--b-rouge); }
+  .ch-bead[data-img='jaune'] { --img: var(--b-jaune); }
+  .ch-bead[data-img='bleu'] { --img: var(--b-bleu); }
+  .ch-bead[data-img='violet'] { --img: var(--b-violet); }
+  .ch-bead[data-img='neutre'],
+  .ch-bead.is-done:not(.is-big) { --img: var(--b-neutre); }
+  .ch-bead[data-img='pater'] { --img: var(--b-pater); }
+  .ch .ch-bead.is-on {
+    --sc: 1.4;
+    filter: brightness(1.15) drop-shadow(0 0 6px rgba(255, 214, 120, 0.95));
+    z-index: 4;
+  }
+  .ch .ch-bead.is-big.is-on {
+    --sc: 1.12;
+  }
+  .ch .ch-bead.is-done {
+    filter: grayscale(1) brightness(0.75);
+    opacity: 0.55;
+  }
+  .ch .ch-bead:hover {
+    --sc: 1.25;
+  }
+  .ch .ch-medal,
+  .ch .ch-cross {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    z-index: 3;
+    transition: filter 0.6s;
+  }
+  .ch .ch-medal {
+    left: 50%;
+    top: 61.3%;
+    width: 12%;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+  }
+  .ch .ch-cross {
+    left: 56%;
+    top: 93.5%;
+    width: 17%;
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.55));
+  }
+  .ch-medal img,
+  .ch-cross img {
+    width: 100%;
+    height: auto;
+  }
+  .ch .ch-medal.is-on,
+  .ch .ch-cross.is-on {
+    filter: drop-shadow(0 0 14px rgba(255, 214, 120, 0.95));
+  }
+  .ch .ch-medal.is-done {
+    filter: brightness(0.8);
+  }
+  .ch-flash {
+    position: absolute;
+    left: 50%;
+    top: 33.6%;
+    width: 62%;
+    transform: translate(-50%, -50%) scale(0.9);
+    opacity: 0;
+    filter: blur(8px);
+    transition:
+      opacity 0.9s ease,
+      transform 1.2s var(--ease),
+      filter 0.9s;
+    pointer-events: none;
+    z-index: 6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+  }
+  .ch-flash.is-on {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    filter: blur(0);
+  }
+  .ch-flash-num {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: clamp(70px, 11vw, 120px);
+    line-height: 0.9;
+    color: var(--gold-light);
+    text-shadow: 0 0 30px rgba(226, 190, 110, 0.6);
+  }
+  .ch-flash-name {
+    padding: 8px 16px;
+    border-radius: 12px;
+    background: rgba(21, 18, 14, 0.72);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    font-family: var(--serif);
+    font-size: clamp(20px, 2.4vw, 26px);
+    line-height: 1.15;
+    color: var(--paper-light);
+    text-wrap: balance;
+  }
+  .ch-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px 22px;
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(247, 241, 227, 0.62);
+  }
+  .ch-legend li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ch-legend li > img {
+    width: 16px;
+    height: auto;
+  }
+  .ch-legend-stack {
+    display: flex;
+  }
+  .ch-legend-stack img {
+    width: 13px;
+    height: 13px;
+  }
+  .ch-legend-stack img + img {
+    margin-left: -3px;
+  }
+  .ch-legend-now {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #f0c760;
+    box-shadow: 0 0 8px rgba(240, 199, 96, 0.9);
+  }
+  .ch-legend-path {
+    width: 16px;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--gold-light);
+    box-shadow: 0 0 4px rgba(226, 190, 110, 0.8);
+  }
+
+  /* ---------- Colonne de prière ---------- */
+  .ch-side {
+    flex: 1 1 380px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .ch-card {
+    border-radius: 22px;
+    background: rgba(247, 241, 227, 0.04);
+    box-shadow: inset 0 0 0 0.5px rgba(226, 190, 110, 0.28);
+  }
+  .ch-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  .ch-k,
+  .ch-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(247, 241, 227, 0.6);
+  }
+  .ch-eyebrow {
+    color: var(--gold-light);
+  }
+  .ch-progress {
+    padding: 18px 22px 20px;
+  }
+  .ch-count {
+    font-family: var(--serif);
+    font-size: 22px;
+    color: var(--paper-light);
+  }
+  .ch-count-of {
+    font-size: 15px;
+    color: rgba(247, 241, 227, 0.5);
+  }
+  .ch-bar {
+    margin-top: 14px;
+    position: relative;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(247, 241, 227, 0.1);
+    overflow: hidden;
+  }
+  .ch-bar-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--oxblood), var(--gold) 60%, var(--gold-light));
+    transition: width 0.7s var(--ease);
+    overflow: hidden;
+  }
+  .ch-shimmer {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 60px;
+    background: linear-gradient(90deg, transparent, rgba(255, 240, 200, 0.8), transparent);
+    animation: ch-shimmer 3.2s ease-in-out infinite;
+  }
+  @keyframes ch-shimmer {
+    from {
+      transform: translateX(-80px);
+    }
+    to {
+      transform: translateX(600px);
+    }
+  }
+  .ch-decades {
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .ch-decade {
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(247, 241, 227, 0.1);
+    overflow: hidden;
+  }
+  .ch-decade > div {
+    height: 100%;
+    width: 0;
+    transition: width 0.6s var(--ease);
+  }
+  .ch-pray {
+    flex: 1;
+    background: linear-gradient(180deg, rgba(247, 241, 227, 0.06), rgba(247, 241, 227, 0.025));
+    box-shadow:
+      inset 0 0 0 0.5px rgba(226, 190, 110, 0.28),
+      0 30px 60px -30px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .ch-pray-body {
+    padding: 24px 26px 26px;
+    min-height: 270px;
+    display: flex;
+    flex-direction: column;
+  }
+  .ch-badge {
+    min-height: 24px;
+    padding: 0 10px;
+    border-radius: 12px;
+    box-shadow: inset 0 0 0 0.5px rgba(247, 241, 227, 0.3);
+    display: flex;
+    align-items: center;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(247, 241, 227, 0.7);
+    white-space: nowrap;
+  }
+  .ch-title {
+    margin-top: 14px;
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(30px, 3vw, 38px);
+    line-height: 1.05;
+    color: var(--paper-light);
+    text-wrap: balance;
+  }
+  .ch-paras {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .ch-paras:empty {
+    display: none;
+  }
+  .ch-paras p {
+    font-family: var(--serif-text);
+    font-size: 19px;
+    line-height: 1.62;
+    color: rgba(247, 241, 227, 0.86);
+    text-wrap: pretty;
+  }
+  .ch-w {
+    display: inline-block;
+    white-space: pre;
+  }
+  .ch-fruit {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 0.5px solid rgba(226, 190, 110, 0.3);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .ch-fruit[hidden] {
+    display: none;
+  }
+  .ch-fruit-k,
+  .ch-myst-ref {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+  }
+  .ch-fruit-v {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 22px;
+    color: var(--paper-light);
+  }
+  .ch-myst {
+    margin-top: auto;
+    border-top: 0.5px solid rgba(226, 190, 110, 0.22);
+    padding: 18px 26px 20px;
+    background: rgba(0, 0, 0, 0.12);
+  }
+  .ch .ch-info-btn {
+    min-height: 32px;
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 15px;
+    color: var(--gold-light);
+  }
+  .ch .ch-info-btn:hover {
+    color: var(--paper-light);
+  }
+  .ch-myst-list {
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .ch .ch-myst-row {
+    width: 100%;
+    min-height: 34px;
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr) 16px;
+    align-items: center;
+    gap: 10px;
+    text-align: left;
+  }
+  .ch-myst-num {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 18px;
+    color: rgba(247, 241, 227, 0.4);
+    transition: color 0.4s;
+  }
+  .ch-myst-name {
+    font-family: var(--serif-text);
+    font-size: 16.5px;
+    color: rgba(247, 241, 227, 0.82);
+    transition:
+      color 0.4s,
+      transform 0.5s var(--ease);
+  }
+  .ch-myst-row svg {
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+  .ch-myst-row:hover .ch-myst-name {
+    color: var(--gold-light);
+  }
+  .is-done .ch-myst-name {
+    color: rgba(247, 241, 227, 0.5);
+  }
+  .is-done .ch-myst-row svg {
+    opacity: 1;
+  }
+  .is-on .ch-myst-num,
+  .is-on .ch-myst-name {
+    color: var(--gold-light);
+  }
+  .is-on .ch-myst-name {
+    font-style: italic;
+    transform: translateX(6px);
+  }
+  .ch-myst-info {
+    margin: 2px 0 10px 34px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(247, 241, 227, 0.05);
+    box-shadow: inset 0 0 0 0.5px rgba(226, 190, 110, 0.25);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .ch-myst-info[hidden] {
+    display: none;
+  }
+  .ch-myst-med {
+    font-family: var(--serif-text);
+    font-size: 15.5px;
+    line-height: 1.5;
+    color: rgba(247, 241, 227, 0.8);
+    text-wrap: pretty;
+  }
+  .ch-myst-fruit {
+    font-family: var(--serif-text);
+    font-size: 15px;
+    color: rgba(247, 241, 227, 0.6);
+  }
+  .ch-myst-fruit em {
+    color: var(--paper-light);
+  }
+
+  /* ---------- Commandes ---------- */
+  .ch-ctrl {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr) 56px;
+    gap: 10px;
+  }
+  .ch .ch-round {
+    min-height: 56px;
+    border-radius: 28px;
+    box-shadow: inset 0 0 0 0.5px rgba(247, 241, 227, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--paper-light);
+    transition: background 0.3s;
+  }
+  .ch .ch-round:hover {
+    background: rgba(247, 241, 227, 0.08);
+  }
+  .ch .ch-next {
+    position: relative;
+    overflow: hidden;
+    min-height: 56px;
+    border-radius: 28px 28px 8px 8px;
+    background: var(--gold-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: var(--ink-dark);
+    box-shadow: 0 12px 30px -12px rgba(226, 190, 110, 0.7);
+    transition: background 0.3s;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .ch .ch-next:hover {
+    background: var(--night-gold);
+  }
+  .ch-sheen {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 80px;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+    pointer-events: none;
+    animation: ch-sheen 5.2s ease-in-out infinite;
+  }
+  @keyframes ch-sheen {
+    0%,
+    60% {
+      transform: translateX(-120px);
+    }
+    100% {
+      transform: translateX(520px);
+    }
+  }
+  .ch-keys {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 15px;
+    color: rgba(247, 241, 227, 0.5);
+  }
+  .ch-keys kbd {
+    min-width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    box-shadow: inset 0 0 0 0.5px rgba(247, 241, 227, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--sans);
+    font-style: normal;
+    font-size: 12px;
+    color: rgba(247, 241, 227, 0.8);
+  }
+  @media (hover: none) {
+    .ch-keys {
+      display: none;
+    }
+  }
+
+  /* ---------- Réglages ---------- */
+  .ch-shade {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(10, 8, 6, 0.6);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s;
+  }
+  .ch-sheet {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 41;
+    width: min(440px, 100%);
+    background: #1b1713;
+    box-shadow:
+      -30px 0 60px -20px rgba(0, 0, 0, 0.7),
+      inset 0.5px 0 0 rgba(226, 190, 110, 0.3);
+    transform: translateX(104%);
+    transition: transform 0.6s var(--ease);
+    display: flex;
+    flex-direction: column;
+  }
+  .ch.is-cfg .ch-shade {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .ch.is-cfg .ch-sheet {
+    transform: none;
+  }
+  .ch-sheet-head {
+    flex: none;
+    padding: 24px 26px 18px;
+    border-bottom: 0.5px solid rgba(226, 190, 110, 0.2);
+  }
+  .ch .ch-close {
+    width: 40px;
+    height: 40px;
+    margin-right: -10px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ch .ch-close:hover {
+    background: rgba(247, 241, 227, 0.08);
+  }
+  .ch-sheet-title {
+    margin-top: 6px;
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 34px;
+    line-height: 1;
+    color: var(--paper-light);
+  }
+  .ch-sheet-title em {
+    color: var(--gold-light);
+  }
+  .ch-sheet-meta {
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+  }
+  .ch-summary {
+    min-height: 28px;
+    padding: 0 12px;
+    border-radius: 14px;
+    background: rgba(226, 190, 110, 0.12);
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gold-light);
+  }
+  .ch-source {
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 15px;
+    color: rgba(247, 241, 227, 0.55);
+  }
+  .ch-sheet-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 20px 20px 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+  .ch-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .ch-group-title {
+    margin: 0 6px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 20px;
+    color: var(--gold-light);
+    white-space: nowrap;
+  }
+  .ch-group-title div {
+    flex: 1;
+    height: 0.5px;
+    background: rgba(226, 190, 110, 0.25);
+  }
+  .ch-group-box {
+    border-radius: 16px;
+    background: rgba(247, 241, 227, 0.04);
+    box-shadow: inset 0 0 0 0.5px rgba(247, 241, 227, 0.14);
+    overflow: hidden;
+  }
+  .ch .ch-opt {
+    width: 100%;
+    min-height: 60px;
+    padding: 10px 16px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 44px;
+    gap: 14px;
+    align-items: center;
+    text-align: left;
+    transition: background 0.3s;
+  }
+  .ch-opt + .ch-opt {
+    border-top: 0.5px solid rgba(247, 241, 227, 0.1);
+  }
+  .ch .ch-opt:hover {
+    background: rgba(247, 241, 227, 0.04);
+  }
+  .ch-opt:focus-visible {
+    outline-offset: -2px;
+  }
+  .ch-opt-text {
+    min-width: 0;
+  }
+  .ch-opt-name {
+    display: block;
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 19px;
+    line-height: 1.15;
+    color: rgba(247, 241, 227, 0.5);
+    transition: color 0.3s;
+  }
+  .ch-opt-hint {
+    display: block;
+    margin-top: 2px;
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 14px;
+    line-height: 1.3;
+    color: rgba(247, 241, 227, 0.5);
+    text-wrap: pretty;
+  }
+  .ch-switch {
+    position: relative;
+    width: 44px;
+    height: 26px;
+    border-radius: 13px;
+    background: rgba(247, 241, 227, 0.12);
+    box-shadow: inset 0 0 0 0.5px rgba(247, 241, 227, 0.3);
+    transition: background 0.3s;
+  }
+  .ch-switch span {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--paper-light);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    transition:
+      left 0.35s cubic-bezier(0.3, 1.4, 0.5, 1),
+      background 0.3s;
+  }
+  [aria-checked='true'] .ch-opt-name {
+    color: var(--paper-light);
+  }
+  [aria-checked='true'] .ch-switch {
+    background: var(--gold-light);
+    box-shadow: none;
+  }
+  [aria-checked='true'] .ch-switch span {
+    left: 21px;
+    background: var(--ink-dark);
+  }
+  .ch .ch-defaults {
+    align-self: center;
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 22px;
+    font-family: var(--serif-text);
+    font-style: italic;
+    font-size: 16px;
+    color: rgba(247, 241, 227, 0.65);
+  }
+  .ch .ch-defaults:hover {
+    color: var(--gold-light);
+  }
+
+  /* Réglage « Chapelet animé » désactivé : plus de boucles décoratives */
+  .ch.is-calm .ch-stage *,
+  .ch.is-calm .ch-shimmer,
+  .ch.is-calm .ch-sheen {
+    animation: none;
+  }
+  .ch.is-calm .ch-p {
+    display: none;
+  }
+
+  @media (max-width: 479px) {
+    .ch-main {
+      padding-top: 28px;
+    }
+    .ch-stage-col {
+      flex-basis: 100%;
+    }
+    .ch-pray-body,
+    .ch-myst {
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+  }
+</style>
+
+<script>
+  import '../scripts/chapelet/page';
+</script>

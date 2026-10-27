@@ -1,7 +1,7 @@
 // Formulaire de contact : seule route rendue côté serveur (fonction Vercel).
 // Reçoit le message, le valide et l'envoie à CONTACT_EMAIL via l'API Resend.
 import type { APIRoute } from 'astro';
-import { RESEND_API_KEY, CONTACT_FROM } from 'astro:env/server';
+import { RESEND_API_KEY, CONTACT_FROM, TURNSTILE_SECRET_KEY } from 'astro:env/server';
 import { CONTACT_EMAIL } from '../../config';
 
 export const prerender = false;
@@ -16,7 +16,26 @@ const TOPICS: Record<string, string> = {
 const EMAIL_RE = /^\S+@\S+\.\S+$/;
 const MAX = 2000;
 
-type Result = { ok: true } | { ok: false; error: 'email' | 'short' | 'invalid' | 'server' };
+type Result = { ok: true } | { ok: false; error: 'email' | 'short' | 'invalid' | 'captcha' | 'server' };
+
+/** Vérifie le jeton Cloudflare Turnstile. Sans clé secrète configurée, la vérification est ignorée. */
+async function human(token: string, ip: string | null) {
+  if (!TURNSTILE_SECRET_KEY) {
+    console.warn('[contact] TURNSTILE_SECRET_KEY manquante : formulaire sans anti-robots');
+    return true;
+  }
+  if (!token || token.length > 2048) return false;
+  const body = new URLSearchParams({ secret: TURNSTILE_SECRET_KEY, response: token });
+  if (ip) body.set('remoteip', ip);
+  const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', { method: 'POST', body }).catch((e) => {
+    console.error('[contact] Turnstile injoignable', e);
+    return null;
+  });
+  if (!res?.ok) return false;
+  const out = (await res.json().catch(() => null)) as { success?: boolean; 'error-codes'?: string[] } | null;
+  if (!out?.success) console.warn('[contact] Turnstile refusé', out?.['error-codes']);
+  return !!out?.success;
+}
 
 export const POST: APIRoute = async ({ request, url }) => {
   const isJson = !!request.headers.get('content-type')?.includes('application/json');
@@ -54,6 +73,10 @@ export const POST: APIRoute = async ({ request, url }) => {
   if (!EMAIL_RE.test(email) || email.length > 254) return reply({ ok: false, error: 'email' }, 422);
   if (message.length < 10) return reply({ ok: false, error: 'short' }, 422);
   if (message.length > MAX) return reply({ ok: false, error: 'invalid' }, 422);
+
+  // Anti-robots, vérifié en dernier : le jeton n'est valable qu'une fois
+  const ip = request.headers.get('x-real-ip') ?? request.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? null;
+  if (!(await human(str('cf-turnstile-response'), ip))) return reply({ ok: false, error: 'captcha' }, 403);
 
   if (!RESEND_API_KEY) {
     console.error('[contact] RESEND_API_KEY manquante');

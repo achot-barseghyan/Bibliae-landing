@@ -66,6 +66,7 @@ We use a few service providers only to run the service. They may not use your da
 
 - **Server hosting**: Vercel Inc. (United States), certified under the EU–U.S. Data Privacy Framework.
 - **Contact form delivery**: Resend (United States). Only your name, email and message are sent to it, to deliver them to us.
+- **Contact form spam protection**: Cloudflare Turnstile (Cloudflare, Inc., United States), certified under the EU–U.S. Data Privacy Framework. On the contact page only, it checks technical browser data (including your IP address) to tell humans from bots, without advertising cookies or tracking.
 - **Liturgical texts**: AELF (api.aelf.org) and CatéGPT (categpt.chat). Only the requested date is sent.
 - **Parishes**: open-church.io. **Addresses and geolocation**: Base Adresse Nationale (api-adresse.data.gouv.fr, a French government service). Only the search text or your position at the time of the search is sent, never your identity.
 - **Notifications**: Apple Push Notification service and Firebase Cloud Messaging (Google), if you enable notifications.

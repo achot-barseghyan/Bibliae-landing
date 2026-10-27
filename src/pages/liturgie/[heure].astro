@@ -3,6 +3,7 @@
 import Base from '../../layouts/Base.astro';
 import LwNav from '../../components/liturgie/LwNav.astro';
 import LwFooter from '../../components/liturgie/LwFooter.astro';
+import ChapeletPopup from '../../components/ChapeletPopup.astro';
 import LwDayNav from '../../components/liturgie/LwDayNav.astro';
 import { getInfo, getOffice, type Office } from '../../scripts/liturgie/aelf';
 import { cap, roman, title as dayTitle, type Title } from '../../scripts/liturgie/calendar';
@@ -138,6 +139,7 @@ const sid = (i: number) => `p${i + 1}`;
     </div>
   </main>
   <LwFooter />
+  <ChapeletPopup />
 </Base>
 
 <style>

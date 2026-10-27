@@ -3,6 +3,7 @@ import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import Footer from './Footer.astro';
 import icon from '../assets/icone/icon-180.png';
+import { PUBLIC_TURNSTILE_SITE_KEY } from 'astro:env/client';
 import { CONTACT_EMAIL, SITE_URL } from '../config';
 
 interface Props {
@@ -53,6 +54,7 @@ const t = {
     again: 'Écrire un autre message',
     errEmail: 'Indiquez une adresse courriel valide pour recevoir la réponse.',
     errShort: 'Votre message est un peu court.',
+    errCaptcha: "La vérification anti-robots n'a pas abouti. Patientez un instant, puis réessayez.",
     verseLabel: 'Citation biblique',
     verse: '« Demandez, on vous donnera ; frappez, on vous ouvrira. »',
     verseRef: 'Matthieu 7, 7',
@@ -96,6 +98,7 @@ const t = {
     again: 'Write another message',
     errEmail: 'Enter a valid email address so we can reply.',
     errShort: 'Your message is a little short.',
+    errCaptcha: "The anti-spam check didn't go through. Wait a moment, then try again.",
     verseLabel: 'Bible quote',
     verse: '“Ask, and it will be given you; knock, and it will be opened to you.”',
     verseRef: 'Matthew 7:7',
@@ -194,6 +197,7 @@ const alternates = [
               data-contact
               data-err-email={t.errEmail}
               data-err-short={t.errShort}
+              data-err-captcha={t.errCaptcha}
               data-err-server={`${t.errServer} ${CONTACT_EMAIL}.`}
               data-sending={t.sending}
               action="/api/contact"
@@ -259,6 +263,13 @@ const alternates = [
               <!-- Pot de miel anti-robots : invisible et ignoré par les humains -->
               <label class="hp" aria-hidden="true">Site<input name="site" tabindex="-1" autocomplete="off" /></label>
 
+              {/* Anti-robots Cloudflare Turnstile : invisible, sauf si Cloudflare demande une vérification */}
+              {
+                PUBLIC_TURNSTILE_SITE_KEY && (
+                  <div class="captcha cf-turnstile" data-sitekey={PUBLIC_TURNSTILE_SITE_KEY} data-language={lang} data-theme="light" data-size="flexible" data-appearance="interaction-only" data-captcha />
+                )
+              }
+
               <p class="error" id="contact-error" role="alert" data-error></p>
 
               <div class="actions">
@@ -296,6 +307,8 @@ const alternates = [
   </main>
 
   <Footer lang={lang} />
+
+  {PUBLIC_TURNSTILE_SITE_KEY && <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>}
 </Base>
 
 <script>
@@ -309,7 +322,13 @@ const alternates = [
   const error = form.querySelector<HTMLElement>('[data-error]')!;
   const sendBtn = form.querySelector<HTMLButtonElement>('[data-send]')!;
   const sendLabel = form.querySelector<HTMLElement>('[data-send-label]')!;
-  const { errEmail = '', errShort = '', errServer = '', sending = '' } = form.dataset;
+  const { errEmail = '', errShort = '', errCaptcha = '', errServer = '', sending = '' } = form.dataset;
+  const captcha = form.querySelector<HTMLElement>('[data-captcha]');
+  // Le jeton Turnstile ne sert qu'une fois : on en redemande un après chaque envoi
+  const resetCaptcha = () => {
+    const ts = (window as { turnstile?: { reset: (el: HTMLElement) => void } }).turnstile;
+    if (captcha && ts) ts.reset(captcha);
+  };
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const setError = (text: string, field?: HTMLElement) => {
@@ -336,6 +355,8 @@ const alternates = [
     const name = String(data.nom ?? '').trim();
     if (!/^\S+@\S+\.\S+$/.test(email.value.trim())) return setError(errEmail, email);
     if (msg.value.trim().length < 10) return setError(errShort, msg);
+    // Vérification pas encore terminée (ou script Cloudflare bloqué)
+    if (captcha && !data['cf-turnstile-response']) return setError(errCaptcha);
 
     const label = sendLabel.textContent;
     sendBtn.disabled = true;
@@ -351,10 +372,12 @@ const alternates = [
     } catch {}
     sendBtn.disabled = false;
     sendLabel.textContent = label;
+    resetCaptcha();
 
     if (!res.ok) {
       if (res.error === 'email') return setError(errEmail, email);
       if (res.error === 'short') return setError(errShort, msg);
+      if (res.error === 'captcha') return setError(errCaptcha);
       return setError(errServer);
     }
 

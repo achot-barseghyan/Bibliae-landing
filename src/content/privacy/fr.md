@@ -66,6 +66,7 @@ Nous faisons appel à quelques prestataires, uniquement pour faire fonctionner l
 
 - **Hébergement de notre serveur** : Vercel Inc. (États-Unis), certifiée au Data Privacy Framework UE–États-Unis.
 - **Envoi des messages du formulaire de contact** : Resend (États-Unis). Seuls votre nom, votre courriel et votre message lui sont transmis, pour nous les acheminer.
+- **Protection du formulaire de contact contre les robots** : Cloudflare Turnstile (Cloudflare, Inc., États-Unis), certifiée au Data Privacy Framework UE–États-Unis. Sur la page de contact uniquement, il analyse des données techniques du navigateur (dont l'adresse IP) pour distinguer un humain d'un robot, sans cookie publicitaire ni pistage.
 - **Textes liturgiques** : AELF (api.aelf.org) et CatéGPT (categpt.chat). Seule la date demandée leur est transmise.
 - **Paroisses** : open-church.io. **Adresses et géolocalisation** : Base Adresse Nationale (api-adresse.data.gouv.fr, service de l'État français). Seuls le texte recherché ou la position, au moment de la recherche, leur sont transmis, jamais votre identité.
 - **Notifications** : Apple Push Notification service et Firebase Cloud Messaging (Google), si vous activez les notifications.

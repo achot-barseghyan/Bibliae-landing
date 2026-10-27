@@ -10,6 +10,7 @@ import LwMass from '../components/liturgie/LwMass.astro';
 import LwHours from '../components/liturgie/LwHours.astro';
 import LwReaders from '../components/liturgie/LwReaders.astro';
 import LwFooter from '../components/liturgie/LwFooter.astro';
+import ChapeletPopup from '../components/ChapeletPopup.astro';
 import { getInfo, getMasses, type Info, type Mass } from '../scripts/liturgie/aelf';
 import { cap, title as dayTitle } from '../scripts/liturgie/calendar';
 import { cache, clip, gospelOf, longDate, pageDate, schema, unquote } from '../scripts/liturgie/server';
@@ -58,6 +59,7 @@ const description = clip(
   </main>
   <LwFooter />
   <LwReaders />
+  <ChapeletPopup />
 </Base>
 
 <style is:global>
